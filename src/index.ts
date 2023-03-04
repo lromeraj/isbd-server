@@ -6,16 +6,13 @@ import net from "net";
 import path from "path";
 import fs from "fs-extra";
 import cryptoRandomString from "crypto-random-string";
-
 import logger from "./logger";
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
 // const fileUpload = require('express-fileupload');
 
+const DATA_SIZE_LIMIT = 2048;
 const server = net.createServer();
-
-
-const DATA_SIZE_LIMIT = 32; // maximum number fo bytes per connection
 
 const connectionHandler: (socket: net.Socket) => void = conn => {
 
