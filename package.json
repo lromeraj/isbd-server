@@ -4,7 +4,7 @@
   "description": "A test server for Iridium SBD",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nodemon --config nodemon.json",
     "build": "rm -rf build/ && tsc"
   },
   "author": "@lromeraj",
@@ -13,10 +13,13 @@
     "@types/express": "^4.17.15",
     "@types/fs-extra": "^11.0.1",
     "@types/node": "^18.11.17",
+    "colors": "^1.4.0",
     "crypto-random-string": "^5.0.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "fs-extra": "^11.1.0",
-    "typescript": "^4.9.4"
+    "nodemon": "^2.0.21",
+    "typescript": "^4.9.4",
+    "winston": "^3.8.2"
   }
 }
