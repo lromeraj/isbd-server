@@ -1,7 +1,7 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 SCRIPT_NAME=${BASH_SOURCE[0]}
 
-function isbd() {
+function sbd() {
 	NODE_SCRIPT_NAME=$1
 	NODE_SCRIPT_PATH=$SCRIPT_DIR/build/scripts/$NODE_SCRIPT_NAME.js
 	shift
