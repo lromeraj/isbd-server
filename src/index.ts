@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs-extra";
 import cryptoRandomString from "crypto-random-string";
 import logger from "./logger";
+import { decodeMoMessage, MoMessage } from "./decoder";
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
 // const fileUpload = require('express-fileupload');
@@ -14,9 +15,41 @@ import logger from "./logger";
 const DATA_SIZE_LIMIT = 2048;
 const server = net.createServer();
 
-const connectionHandler: (socket: net.Socket) => void = conn => {
+// const decodeTasks: Promise<MoMessage>[] = []
 
-  logger.debug( `Socket connected, addr=${Colors.yellow( conn.remoteAddress! )}` );
+function startDecodingTask( filePath: string ): Promise<void> {
+
+  return fs.readFile( filePath ).then( buffer => {
+
+    logger.debug( `Decoding file ${ Colors.yellow( filePath ) } ...`)
+
+    const decodedMsg = decodeMoMessage( buffer );
+    
+    if ( decodedMsg ) {
+      
+      logger.success( `File ${
+        Colors.yellow( filePath )
+      } decoded`, decodedMsg );
+
+    } else {
+      
+      logger.error( `Decode failed for ${
+        Colors.yellow( filePath )
+      } failed, invalid binary format` );
+      
+      fs.unlink( filePath ).then( () => {
+        logger.warn( `File ${ 
+          Colors.yellow( filePath ) 
+        } removed` );
+      })
+      
+    }
+
+  })
+
+}
+
+const connectionHandler: (socket: net.Socket) => void = conn => {
   
   const fileName = `sbd_${ Date.now() }.bin`;
   const filePath = path.join( 'data', fileName );
@@ -62,8 +95,8 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
   
   conn.on('close', () => {
     file.close();
-    logger.debug( `Connection closed` );
     logger.success( `Data written to ${Colors.green(filePath)}`)
+    startDecodingTask( filePath );
   })
 
 }

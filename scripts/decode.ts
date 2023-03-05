@@ -20,10 +20,18 @@ async function main() {
   const [ filePath ] = programArgs;
 
   if ( fs.pathExistsSync( filePath ) ) {
+    
     logger.debug( `Reading ${colors.yellow( filePath )} ...`)
+
     const fileData = fs.readFileSync( filePath );
     const moMessage = decodeMoMessage( fileData );
-    console.log( moMessage );
+    
+    if ( moMessage ) {
+      console.log( moMessage );
+    } else {
+      logger.error( "Decode failed, invalid binary format" );
+    }
+  
   } else {
     logger.error( `File ${colors.yellow( filePath )} does not exist`)
   }

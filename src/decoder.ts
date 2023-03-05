@@ -45,7 +45,6 @@ export interface MoMessage {
   moConfirmation?: MoConfirmation;
 }
 
-
 /**
  * 
  * @param msg 
@@ -108,10 +107,18 @@ function decodeMoPayload( msg: MoMessage, data: Buffer, offset: number ): number
   return 3 + msg.moPayload.length;
 }
 
-export function decodeMoMessage( data: Buffer ): MoMessage {
+/**
+ * Decodes Iridium SBD MO Message
+ * 
+ * @param data Message data buffer
+ * 
+ * @returns Decoded mobile originated message, 
+ * in case of failure `null` is returned
+ */
+export function decodeMoMessage( data: Buffer ): MoMessage | null {
   
   let offset: number = 3;
-  
+
   const protoRevision = data.readUint8( 0 );
   const overallLength = data.readUint16BE( 1 );
 
@@ -129,7 +136,7 @@ export function decodeMoMessage( data: Buffer ): MoMessage {
     } else if ( data[i] == 0x3 ) {
       i += decodeMoLocation( msg, data, i );
     } else {
-      break;
+      return null;
     }
 
   }
