@@ -58,23 +58,37 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
   
   logger.debug( `Creating file ${Colors.yellow( filePath )} ...` );
   
-  let dataSize = 0;
+  conn.setTimeout( 1000 );
 
+  const undo = () => {
+    conn.removeAllListeners();
+    conn.end();
+
+    fs.unlink( filePath );
+  }
+
+  conn.on('error', err => {
+    logger.error( `Connection error => ${err.stack}` )
+    undo();
+  })
+
+  conn.on( 'timeout', () => {
+    logger.error( `Connection timeout` );
+    undo();
+  })
+
+  let dataSize = 0;
   conn.on('data', data => {
 
     dataSize += data.length;
 
     if ( dataSize > DATA_SIZE_LIMIT ) {
-
-      conn.removeAllListeners();
-      conn.destroy();
-      
-      fs.unlink( filePath );
       
       logger.warn( `Data size limit exceded by ${
         Colors.yellow( ( dataSize - DATA_SIZE_LIMIT ).toString() ) 
-      } bytes, destroying connection ...` );
-    
+      } bytes` );
+
+      undo();
     } else {
       
       file.write( data, err => {
