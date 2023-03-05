@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon --config nodemon.json",
-    "build": "rm -rf build/ && tsc"
+    "build": "npm i && rm -rf build/ && tsc"
   },
   "author": "@lromeraj",
   "license": "ISC",
