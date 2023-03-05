@@ -68,8 +68,12 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
 }
 
-
 async function main() {
+
+  if ( !fs.pathExistsSync( 'data' ) ) {
+    fs.mkdirSync( 'data' );
+    logger.success( `Data dir created successfully` );
+  }
 
   if ( process.env.TCP_PORT === undefined ) {
     logger.error("TCP_PORT not defined");
