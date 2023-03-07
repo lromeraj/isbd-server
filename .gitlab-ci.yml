@@ -1,17 +1,23 @@
-variables:
-  GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
-
 stages:
+  - build
   - deploy
+
+build-job:
+  stage: deploy
+  script:
+    - npm run build
+    - cp $ENV_FILE_PATH .env # copy environment file
+    - chmod 600 .env
+  environment:
+    name: production
 
 # TODO: Add test job
 
 deploy-job:
+  variables:
+    GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
   stage: deploy  
   script:
-    - npm run build
-    - cp $ENV_FILE_PATH .env # copy environment file
-    - chmod 400 .env
     - npm run start
   environment:
     name: production
