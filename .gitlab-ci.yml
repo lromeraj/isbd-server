@@ -11,7 +11,5 @@ deploy-job:
     - npm run build
     - cp $ENV_FILE_PATH .env # copy environment file
     - npm run start
-  dependencies:
-    - "build-job"
   environment:
     name: production
