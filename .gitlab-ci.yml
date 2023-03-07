@@ -8,6 +8,7 @@ deploy-job:
   script:
     - npm run build
     - cp $ENV_FILE_PATH .env # copy environment file
+    - chmod 400 .env
     - npm run start
   environment:
     name: production
