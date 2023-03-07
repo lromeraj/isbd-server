@@ -23,12 +23,3 @@ deploy-job:
     - npm run start
   environment:
     name: production
-    on_stop: stop-job
-
-stop-job:
-  script:
-    - npm run stop
-  environment:
-    name: production
-    action: stop
-  when: manual
