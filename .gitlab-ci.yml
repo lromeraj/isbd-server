@@ -1,6 +1,4 @@
-stages:          # List of stages for jobs, and their order of execution
-  - build
-  - test
+stages:
   - deploy
 
 # TODO: Add test job
