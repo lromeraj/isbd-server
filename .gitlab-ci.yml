@@ -1,3 +1,6 @@
+variables:
+  GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
+
 stages:
   - deploy
 
