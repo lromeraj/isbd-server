@@ -1,11 +1,13 @@
 {
-  "name": "sbd-http",
-  "version": "1.0.0",
-  "description": "A test server for Iridium SBD",
+  "name": "isbd-direct-ip-server",
+  "version": "0.0.1",
+  "description": "A test server for Iridium SBD Direct IP",
   "main": "index.js",
   "scripts": {
     "test": "nodemon --config nodemon.json",
-    "build": "npm i && rm -rf build/ && tsc"
+    "build": "npm i && rm -rf build/ && tsc",
+    "start": "pm2 start ecosystem.config.js",
+    "stop": "pm2 stop ecosystem.config.js"
   },
   "author": "@lromeraj",
   "license": "ISC",
@@ -20,6 +22,7 @@
     "express": "^4.18.2",
     "fs-extra": "^11.1.0",
     "nodemon": "^2.0.21",
+    "pm2": "^5.2.2",
     "typescript": "^4.9.4",
     "winston": "^3.8.2"
   }

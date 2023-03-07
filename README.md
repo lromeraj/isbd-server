@@ -1,6 +1,6 @@
 # Iridium SBD Direct IP Server
 
-This is a server for testing *Iridium SBD* direct IP messages and should not be used in production environments.
+This is a server for testing *Iridium SBD Direct IP* messages and should not be used in production environments.
 
 # Building the server
 To build the server you need *Node JS* and *npm* (*Node Package Manager*).
@@ -10,7 +10,7 @@ Before building the server you have to create the environment file `.env` in the
 TCP_PORT=45671
 ```
 
-Execute the following command to start build process:
+Execute the following command to start the building process:
 ``` bash
 npm run buid
 ```
