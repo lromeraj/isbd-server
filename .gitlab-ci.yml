@@ -3,20 +3,12 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
-  stage: build
+# TODO: Add test job
+
+deploy-job:
+  stage: deploy  
   script:
-    - echo "Compiling the code..."
     - npm run build
-  artifacts:
-    paths:
-      - build/
-      - node_modules/
-
-
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  script:
     - cp $ENV_FILE_PATH .env # copy environment file
     - npm run start
   dependencies:
