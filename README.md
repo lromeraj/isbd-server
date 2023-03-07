@@ -1,5 +1,4 @@
 # Iridium SBD Direct IP Server
-
 This is a server for testing *Iridium SBD Direct IP* messages and should not be used in production environments.
 
 # Building the server

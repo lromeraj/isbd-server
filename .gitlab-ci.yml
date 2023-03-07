@@ -1,3 +1,6 @@
+variables:
+  GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
+
 stages:
   - build
   - deploy
@@ -12,10 +15,8 @@ build-job:
     name: production
 
 # TODO: Add test job
-
 deploy-job:
-  variables:
-    GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
+
   stage: deploy  
   script:
     - npm run start
