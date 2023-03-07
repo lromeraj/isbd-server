@@ -18,7 +18,6 @@ build-job:
     name: production
 
 deploy-job:
-
   stage: deploy  
   script:
     - npm run start
