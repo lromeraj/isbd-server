@@ -3,7 +3,7 @@ stages:
   - deploy
 
 build-job:
-  stage: deploy
+  stage: build
   script:
     - npm run build
     - cp $ENV_FILE_PATH .env # copy environment file
