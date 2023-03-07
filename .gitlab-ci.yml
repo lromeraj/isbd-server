@@ -5,6 +5,8 @@ stages:
   - build
   - deploy
 
+# TODO: Add test job
+
 build-job:
   stage: build
   script:
@@ -14,7 +16,6 @@ build-job:
   environment:
     name: production
 
-# TODO: Add test job
 deploy-job:
 
   stage: deploy  
