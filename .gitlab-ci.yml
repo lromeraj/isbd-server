@@ -19,3 +19,5 @@ deploy-job:      # This job runs in the deploy stage.
     - npm run start
   dependencies:
     - "build-job"
+  environment:
+    name: production
