@@ -6,6 +6,7 @@ stages:
   - deploy
 
 # TODO: Add test job
+# TODO: Add on stop action for environment: https://docs.gitlab.com/ee/ci/environments/#stop-an-environment-through-the-ui
 
 build-job:
   stage: build
@@ -23,3 +24,4 @@ deploy-job:
     - npm run start
   environment:
     name: production
+    on_stop: npm run stop
