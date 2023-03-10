@@ -1,5 +1,6 @@
 variables:
   GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/isbd-server # https://stackoverflow.com/questions/64089704/gitlab-runner-change-builds-dir
 
 stages:
   - build
@@ -8,6 +9,7 @@ stages:
 # TODO: Add test job
 # TODO: Add on stop action for environment: https://docs.gitlab.com/ee/ci/environments/#stop-an-environment-through-the-ui
 
+# TODO: Change build dir 
 build-job:
   stage: build
   script:
