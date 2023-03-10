@@ -6,7 +6,7 @@
   "scripts": {
     "test": "nodemon --config nodemon.json",
     "build": "npm i && rm -rf build/ && tsc",
-    "deploy": "pm2 startOrRestart ecosystem.config.js && pm2 save",
+    "deploy": "pm2 startOrRestart ecosystem.config.js && pm2 save"
   },
   "author": "@lromeraj",
   "license": "ISC",
