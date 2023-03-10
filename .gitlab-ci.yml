@@ -4,28 +4,14 @@ variables:
 
 stages:
   - build
-  - deploy
 
-# TODO: Add test job
-# TODO: Add on stop action for environment: https://docs.gitlab.com/ee/ci/environments/#stop-an-environment-through-the-ui
-
-# TODO: Change build dir 
-build-job:
+deploy-job:
   stage: build
   script:
     - npm run build
     - cp $ENV_FILE .env # copy environment file
     - chmod 600 .env
-  environment:
-    name: production
-  tags:
-    - ascao
-
-
-deploy-job:
-  stage: deploy  
-  script:
-    - npm run start
+    - npm run deploy
   environment:
     name: production
   tags:
