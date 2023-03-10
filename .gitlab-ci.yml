@@ -14,7 +14,7 @@ build-job:
   stage: build
   script:
     - npm run build
-    - cp $ENV_FILE_PATH .env # copy environment file
+    - cp $ENV_FILE .env # copy environment file
     - chmod 600 .env
   environment:
     name: production
