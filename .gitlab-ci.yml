@@ -18,8 +18,7 @@ build-job:
     - chmod 600 .env
   environment:
     name: production
-  tags:
-    - ascao
+
 
 deploy-job:
   stage: deploy  
@@ -27,5 +26,3 @@ deploy-job:
     - npm run start
   environment:
     name: production
-  tags:
-    - ascao
