@@ -9,10 +9,10 @@ deploy-job:
   stage: build
   script:
     - npm run build
-    - cp $ENV_FILE .env # copy environment file
+    - cp $ENV_FILE .env
     - chmod 600 .env
     - npm run deploy
   environment:
     name: production
   tags:
-    - ascao
+    - ascao-moon
