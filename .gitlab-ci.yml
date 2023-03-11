@@ -15,4 +15,4 @@ deploy-job:
   environment:
     name: production
   tags:
-    - ascao-moon
+    - isbd-server
