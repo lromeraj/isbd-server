@@ -7,7 +7,9 @@ import net from "net";
 import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
+import { sendOwnerMessage } from "./bot";
 import { decodeMoMessage, MoMessage } from "./decoder";
+
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
 // const fileUpload = require('express-fileupload');
@@ -30,6 +32,10 @@ function startDecodingTask( filePath: string ): Promise<void> {
       logger.success( `File ${
         Colors.yellow( filePath )
       } decoded`, decodedMsg );
+
+      sendOwnerMessage( `Message received from ${ 
+        decodedMsg.moHeader?.imei 
+      }: ${decodedMsg.moPayload?.payload.toString()}` )
 
     } else {
       
@@ -147,6 +153,8 @@ async function main() {
   server.listen( parseInt( process.env.TCP_PORT ), () => {
     logger.info( `Listening on port ${ Colors.yellow( process.env.TCP_PORT! ) }` );
   })
+
+  sendOwnerMessage( "Iridium SBD server ready" )
 
 }
 
