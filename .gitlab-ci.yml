@@ -16,5 +16,5 @@ deploy-job:
     name: production
   tags:
     - isbd-server
-	only:
-		- master
+  only:
+    - master
