@@ -7,8 +7,8 @@ import net from "net";
 import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
-import { sendOwnerMessage } from "./bot";
-import { decodeMoMessage, MoMessage } from "./decoder";
+import { sendOwnerMessage } from "./bot"; // TODO: make a repo for this type of bot
+import { decodeMoMessage } from "./decoder";
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
@@ -35,7 +35,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
       sendOwnerMessage( `Message received from ${ 
         decodedMsg.moHeader?.imei 
-      }: ${decodedMsg.moPayload?.payload.toString()}` )
+      } : ${decodedMsg.moPayload?.payload.toString()}` )
 
     } else {
       
