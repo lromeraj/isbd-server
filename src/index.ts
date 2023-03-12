@@ -6,7 +6,6 @@ import Colors from "colors";
 import net from "net";
 import path from "path";
 import fs from "fs-extra";
-import cryptoRandomString from "crypto-random-string";
 import logger from "./logger";
 import { decodeMoMessage, MoMessage } from "./decoder";
 // import fileUpload, { UploadedFile } from "express-fileupload";
@@ -132,13 +131,15 @@ async function main() {
 
   if ( !fs.pathExistsSync( dataDir ) ) {
 
-    fs.mkdir( dataDir, { recursive: true }).then( () => {
+    await fs.mkdir( dataDir, { recursive: true }).then( () => {
       logger.success( `Data dir=${Colors.yellow( dataDir )} created successfully` );
     }).catch( err => {
       logger.error( `Could not create dir=${ Colors.yellow( dataDir ) } => ${err.stack}` )      
       process.exit( 1 )
     })
     
+  } else {
+    logger.info( `Using data dir=${Colors.yellow( dataDir )} `)
   }
   
   server.on( 'connection', connectionHandler );
