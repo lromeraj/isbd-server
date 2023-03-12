@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import os from "os";
 import Colors from "colors";
 import net from "net";
 import path from "path";
@@ -112,7 +113,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     logger.success( `Data written to ${Colors.green(filePath)}`)
     startDecodingTask( filePath );
   })
-  
+
 }
 
 async function main() {
@@ -127,7 +128,7 @@ async function main() {
     process.exit(1);
   }
 
-  const dataDir = process.env.DATA_DIR;
+  const dataDir = path.join( os.homedir(), process.env.DATA_DIR! );
 
   if ( !fs.pathExistsSync( dataDir ) ) {
 
