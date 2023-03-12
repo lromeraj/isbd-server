@@ -132,7 +132,7 @@ async function main() {
 
   if ( !fs.pathExistsSync( dataDir ) ) {
 
-    fs.mkdir( dataDir ).then( () => {
+    fs.mkdir( dataDir, { recursive: true }).then( () => {
       logger.success( `Data dir=${Colors.yellow( dataDir )} created successfully` );
     }).catch( err => {
       logger.error( `Could not create dir=${ Colors.yellow( dataDir ) } => ${err.stack}` )      
