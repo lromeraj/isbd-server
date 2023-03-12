@@ -118,8 +118,6 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
 async function main() {
   
-  const dataDir = path.join( process.cwd(), process.env.DATA_DIR! );
-
   if ( process.env.TCP_PORT === undefined ) {
     logger.error( "TCP_PORT not defined" );
     process.exit(1);
@@ -129,6 +127,8 @@ async function main() {
     logger.error( "DATA_DIR not defined" );
     process.exit(1);
   }
+
+  const dataDir = process.env.DATA_DIR;
 
   if ( !fs.pathExistsSync( dataDir ) ) {
 
