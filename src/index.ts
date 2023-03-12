@@ -12,7 +12,7 @@ import { decodeMoMessage, MoMessage } from "./decoder";
 // import fileUpload from "express-fileupload";
 // const fileUpload = require('express-fileupload');
 
-const DATA_SIZE_LIMIT = 2048;
+const DATA_SIZE_LIMIT = 1024;
 const server = net.createServer();
 
 // const decodeTasks: Promise<MoMessage>[] = []
