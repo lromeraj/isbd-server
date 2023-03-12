@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 import fs from "fs-extra";
 import colors from "colors";
 import logger from "../src/logger"

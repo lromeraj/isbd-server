@@ -54,9 +54,9 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
   const fileName = `sbd_${ Date.now() }.bin`;
   const filePath = path.join( 'data', fileName );
   
-  const file = fs.createWriteStream( filePath );
-  
   logger.debug( `Creating file ${Colors.yellow( filePath )} ...` );
+
+  const file = fs.createWriteStream( filePath );
   
   conn.setTimeout( 1000 );
 
@@ -115,18 +115,32 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
 }
 
-async function main() {
 
-  if ( !fs.pathExistsSync( 'data' ) ) {
-    fs.mkdirSync( 'data' );
-    logger.success( `Data dir created successfully` );
-  }
+async function main() {
+  
+  const dataDir = path.join( process.cwd(), process.env.DATA_DIR! );
 
   if ( process.env.TCP_PORT === undefined ) {
-    logger.error("TCP_PORT not defined");
+    logger.error( "TCP_PORT not defined" );
+    process.exit(1);
+  }
+  
+  if ( process.env.DATA_DIR === undefined ) {
+    logger.error( "DATA_DIR not defined" );
     process.exit(1);
   }
 
+  if ( !fs.pathExistsSync( dataDir ) ) {
+
+    fs.mkdir( dataDir ).then( () => {
+      logger.success( `Data dir=${Colors.yellow( dataDir )} created successfully` );
+    }).catch( err => {
+      logger.error( `Could not create dir=${ Colors.yellow( dataDir ) } => ${err.stack}` )      
+      process.exit( 1 )
+    })
+    
+  }
+  
   server.on( 'connection', connectionHandler );
 
   server.listen( process.env.TCP_PORT, () => {
