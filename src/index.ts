@@ -112,9 +112,8 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     logger.success( `Data written to ${Colors.green(filePath)}`)
     startDecodingTask( filePath );
   })
-
+  
 }
-
 
 async function main() {
   
