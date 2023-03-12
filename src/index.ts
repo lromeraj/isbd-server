@@ -127,24 +127,24 @@ async function main() {
     process.exit(1);
   }
 
-  const dataDir = path.join( os.homedir(), process.env.DATA_DIR! );
+  const dataDir = process.env.DATA_DIR!;
 
   if ( !fs.pathExistsSync( dataDir ) ) {
 
     await fs.mkdir( dataDir, { recursive: true }).then( () => {
       logger.success( `Data dir=${Colors.yellow( dataDir )} created successfully` );
     }).catch( err => {
-      logger.error( `Could not create dir=${ Colors.yellow( dataDir ) } => ${err.stack}` )      
-      process.exit( 1 )
+      logger.error( `Could not create dir=${ Colors.yellow( dataDir ) } => ${err.stack}` );
+      process.exit(1);
     })
-    
+
   } else {
     logger.info( `Using data dir=${Colors.yellow( dataDir )} `)
   }
   
   server.on( 'connection', connectionHandler );
 
-  server.listen( process.env.TCP_PORT, () => {
+  server.listen( parseInt( process.env.TCP_PORT ), () => {
     logger.info( `Listening on port ${ Colors.yellow( process.env.TCP_PORT! ) }` );
   })
 
