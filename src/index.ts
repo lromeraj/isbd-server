@@ -8,7 +8,7 @@ import net from "net";
 import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
-import * as bot from "tele-bot";
+import * as teleBot from "tele-bot";
 import { decodeMoMessage, MoMessage } from "./decoder";
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
@@ -17,7 +17,7 @@ import { decodeMoMessage, MoMessage } from "./decoder";
 
 const DATA_SIZE_LIMIT = 1024;
 const server = net.createServer();
-
+const bot = teleBot.setup( process.env.BOT_TOKEN!, process.env.BOT_SECRET! );
 
 // const decodeTasks: Promise<MoMessage>[] = []
 
@@ -34,10 +34,12 @@ function startDecodingTask( filePath: string ): Promise<void> {
       logger.success( `File ${
         Colors.yellow( filePath )
       } decoded`, decodedMsg );
-
-      bot.sendOwnerMessage( `Message received from ${ 
-        decodedMsg.moHeader?.imei 
-      }: ${decodedMsg.moPayload?.payload.toString()}` )
+      
+      teleBot.getOwnerChatId( idChat => {
+        bot.sendMessage( idChat, `Message received from ${ 
+          decodedMsg.moHeader?.imei 
+        }: ${decodedMsg.moPayload?.payload.toString()}` )
+      })
 
     } else {
       
@@ -156,8 +158,9 @@ async function main() {
     logger.info( `Listening on port ${ Colors.yellow( process.env.TCP_PORT! ) }` );
   })
 
-  bot.setup( process.env.BOT_TOKEN!, process.env.BOT_SECRET! );
-  bot.sendOwnerMessage( "Iridium SBD server ready" )
+  teleBot.getOwnerChatId( idChat => {
+    bot.sendMessage( idChat, "Iridium SBD server ready" )
+  })
 
 }
 
