@@ -3,10 +3,12 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive # https://docs.gitlab.com/ee/ci/git_submodules.html#use-git-submodules-in-cicd-jobs
   GIT_CLONE_PATH: $CI_BUILDS_DIR/isbd-server # https://stackoverflow.com/questions/64089704/gitlab-runner-change-builds-dir
 
+stages:
+  - build
+
 deploy-job:
   stage: build
   before_script:
-    - echo "HOLA"
     - 'wget --header "PRIVATE-TOKEN: ${CI_JOB_TOKEN}" https://glab.lromeraj.net/api/v4/projects/128/repository/files/proxy.sh/raw?ref=master'
   script:
     - npm run build
