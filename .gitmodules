@@ -1,0 +1,3 @@
+[submodule "tele-bot"]
+	path = tele-bot
+	url = ../../../../npm/tele-bot.git
