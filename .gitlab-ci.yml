@@ -6,9 +6,6 @@ variables:
 stages:
   - build
 
-before_script:
-  - 'wget --header "PRIVATE-TOKEN: ${CI_JOB_TOKEN}" https://glab.lromeraj.net/api/v4/projects/128/repository/files/proxy.sh/raw?ref=master'
-
 deploy-job:
   stage: build
   script:
