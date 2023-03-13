@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+
 dotenv.config();
 
 import os from "os";
@@ -7,7 +8,7 @@ import net from "net";
 import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
-import { sendOwnerMessage } from "./bot";
+import * as bot from "tele-bot";
 import { decodeMoMessage, MoMessage } from "./decoder";
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
@@ -16,6 +17,7 @@ import { decodeMoMessage, MoMessage } from "./decoder";
 
 const DATA_SIZE_LIMIT = 1024;
 const server = net.createServer();
+
 
 // const decodeTasks: Promise<MoMessage>[] = []
 
@@ -33,7 +35,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
         Colors.yellow( filePath )
       } decoded`, decodedMsg );
 
-      sendOwnerMessage( `Message received from ${ 
+      bot.sendOwnerMessage( `Message received from ${ 
         decodedMsg.moHeader?.imei 
       }: ${decodedMsg.moPayload?.payload.toString()}` )
 
@@ -84,6 +86,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
   })
 
   let dataSize = 0;
+
   conn.on('data', data => {
 
     dataSize += data.length;
@@ -136,7 +139,6 @@ async function main() {
   const dataDir = process.env.DATA_DIR!;
 
   if ( !fs.pathExistsSync( dataDir ) ) {
-
     await fs.mkdir( dataDir, { recursive: true }).then( () => {
       logger.success( `Data dir=${Colors.yellow( dataDir )} created successfully` );
     }).catch( err => {
@@ -154,7 +156,8 @@ async function main() {
     logger.info( `Listening on port ${ Colors.yellow( process.env.TCP_PORT! ) }` );
   })
 
-  sendOwnerMessage( "Iridium SBD server ready" )
+  bot.setup( process.env.BOT_TOKEN!, process.env.BOT_SECRET! );
+  bot.sendOwnerMessage( "Iridium SBD server ready" )
 
 }
 
