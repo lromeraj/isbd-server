@@ -17,7 +17,10 @@ import { decodeMoMessage, MoMessage } from "./decoder";
 
 const DATA_SIZE_LIMIT = 1024;
 const server = net.createServer();
-const bot = teleBot.setup( process.env.BOT_TOKEN!, process.env.BOT_SECRET! );
+const bot = teleBot.setup({
+  token: process.env.BOT_TOKEN!, 
+  secret: process.env.BOT_SECRET!,
+});
 
 // const decodeTasks: Promise<MoMessage>[] = []
 
@@ -159,7 +162,7 @@ async function main() {
   })
 
   teleBot.getOwnerChatId( idChat => {
-    bot.sendMessage( idChat, "Iridium SBD server ready" )
+    bot.sendMessage( idChat, "Iridium SBD server ready ..." )
   })
 
 }
