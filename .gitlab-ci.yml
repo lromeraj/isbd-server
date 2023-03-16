@@ -12,7 +12,7 @@ stages:
 deploy-job:
   stage: build
   script:
-    - npm run build
+    - npm run build:prod
     - cp $ENV_FILE .env
     - chmod 600 .env
     - npm run deploy
