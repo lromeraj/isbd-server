@@ -164,7 +164,7 @@ async function main() {
   })
 
   teleBot.getOwnerChatId( idChat => {
-    bot.sendMessage( idChat, "Iridium SBD server ready ..." )
+    bot.sendMessage( idChat, "Iridium SBD server ready" )
   })
 
 }
