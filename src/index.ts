@@ -16,6 +16,7 @@ import { decodeMoMessage, MoMessage } from "./decoder";
 // const fileUpload = require('express-fileupload');
 
 const DATA_SIZE_LIMIT = 1024;
+
 const server = net.createServer();
 const bot = teleBot.setup({
   token: process.env.BOT_TOKEN!, 
@@ -39,7 +40,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
       } decoded`, decodedMsg );
       
       teleBot.getOwnerChatId( idChat => {
-        bot.sendMessage( idChat, `Message received from ${ 
+        bot.sendMessage( idChat, `Message received from ${
           decodedMsg.moHeader?.imei 
         }: ${decodedMsg.moPayload?.payload.toString()}` )
       })
