@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import os from "os";
-import Colors from "colors";
+import colors from "colors";
 import net from "net";
 import path from "path";
 import fs from "fs-extra";
@@ -29,14 +29,14 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
   return fs.readFile( filePath ).then( buffer => {
 
-    logger.debug( `Decoding file ${ Colors.yellow( filePath ) } ...`)
+    logger.debug( `Decoding file ${ colors.yellow( filePath ) } ...`)
 
     const decodedMsg = decodeMoMessage( buffer );
     
     if ( decodedMsg ) {
       
       logger.success( `File ${
-        Colors.yellow( filePath )
+        colors.yellow( filePath )
       } decoded`, decodedMsg );
       
       teleBot.getOwnerChatId( idChat => {
@@ -48,12 +48,12 @@ function startDecodingTask( filePath: string ): Promise<void> {
     } else {
       
       logger.error( `Decode failed for ${
-        Colors.yellow( filePath )
+        colors.yellow( filePath )
       } failed, invalid binary format` );
       
       fs.unlink( filePath ).then( () => {
         logger.warn( `File ${ 
-          Colors.yellow( filePath ) 
+          colors.yellow( filePath ) 
         } removed` );
       })
       
@@ -66,9 +66,9 @@ function startDecodingTask( filePath: string ): Promise<void> {
 const connectionHandler: (socket: net.Socket) => void = conn => {
   
   const fileName = `sbd_${ Date.now() }.bin`;
-  const filePath = path.join( 'data', fileName );
+  const filePath = path.join( process.env.DATA_DIR!, fileName );
   
-  logger.debug( `Creating file ${Colors.yellow( filePath )} ...` );
+  logger.debug( `Creating file ${colors.yellow( filePath )} ...` );
 
   const file = fs.createWriteStream( filePath );
   
@@ -91,6 +91,12 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     undo();
   })
 
+  conn.on('close', () => {
+    file.close();
+    logger.success( `Data written to ${colors.green(filePath)}`)
+    startDecodingTask( filePath );
+  })
+
   let dataSize = 0;
 
   conn.on('data', data => {
@@ -100,7 +106,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     if ( dataSize > DATA_SIZE_LIMIT ) {
       
       logger.warn( `Data size limit exceded by ${
-        Colors.yellow( ( dataSize - DATA_SIZE_LIMIT ).toString() ) 
+        colors.yellow( ( dataSize - DATA_SIZE_LIMIT ).toString() ) 
       } bytes` );
 
       undo();
@@ -110,8 +116,8 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
         
         if ( err == null ) {
           logger.debug( `Written ${
-            Colors.yellow( data.length.toString() )
-          } bytes to ${Colors.yellow(filePath)}` );
+            colors.yellow( data.length.toString() )
+          } bytes to ${colors.yellow(filePath)}` );
         } else {
           logger.error( `Data write failed => ${ err.stack }` );
         }
@@ -121,12 +127,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     }
 
   })
-  
-  conn.on('close', () => {
-    file.close();
-    logger.success( `Data written to ${Colors.green(filePath)}`)
-    startDecodingTask( filePath );
-  })
+
 
 }
 
@@ -146,20 +147,20 @@ async function main() {
 
   if ( !fs.pathExistsSync( dataDir ) ) {
     await fs.mkdir( dataDir, { recursive: true }).then( () => {
-      logger.success( `Data dir=${Colors.yellow( dataDir )} created successfully` );
+      logger.success( `Data dir=${colors.yellow( dataDir )} created successfully` );
     }).catch( err => {
-      logger.error( `Could not create dir=${ Colors.yellow( dataDir ) } => ${err.stack}` );
+      logger.error( `Could not create dir=${ colors.yellow( dataDir ) } => ${err.stack}` );
       process.exit(1);
     })
 
   } else {
-    logger.info( `Using data dir=${Colors.yellow( dataDir )} `)
+    logger.info( `Using data dir=${colors.yellow( dataDir )} `)
   }
   
   server.on( 'connection', connectionHandler );
 
   server.listen( parseInt( process.env.TCP_PORT ), () => {
-    logger.info( `Listening on port ${ Colors.yellow( process.env.TCP_PORT! ) }` );
+    logger.info( `Listening on port ${ colors.yellow( process.env.TCP_PORT! ) }` );
   })
 
   teleBot.getOwnerChatId( idChat => {
