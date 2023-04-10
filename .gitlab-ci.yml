@@ -6,13 +6,18 @@ variables:
 # ! Is important to allow CI_JOB_TOKEN in the private submodules referenced from this project: 
 # https://docs.gitlab.com/ee/ci/jobs/ci_job_token.html#add-a-project-to-the-inbound-job-token-scope-allowlist
 
-stages:
-  - build
+build:
+  script:
+    - npm run build
+  tags:
+    - isbd-server
+  only:
+    - dev
 
-deploy-job:
+deploy:
   stage: build
   script:
-    - npm run build:prod
+    - npm run build
     - cp $ENV_FILE .env
     - chmod 600 .env
     - npm run deploy
