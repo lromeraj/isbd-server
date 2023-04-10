@@ -11,7 +11,8 @@ test:
     - npm run build
   tags:
     - isbd-server
-  only: dev
+  only:
+    - dev
 
 deploy:
   stage: build
