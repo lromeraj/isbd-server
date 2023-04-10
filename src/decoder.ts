@@ -65,7 +65,7 @@ function decodeMoHeader( msg: MoMessage, data: Buffer, offset: number ): number 
     time: data.readUint32BE( offset + 28 ), 
   };
 
-  // offset + IE header length + IE length
+  // IE header length + IE length
   return 3 + msg.moHeader.length;
 }
 
