@@ -1,5 +1,9 @@
 .env
 build/
 node_modules/
+<<<<<<< HEAD
+mo/
+=======
 mo/
 tele-bot-storage/
+>>>>>>> master

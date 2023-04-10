@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon --config nodemon.json",
-    "build:dev": "npm i && rm -rf build/ && tsc",
-		"build:prod": "npm i --production && rm -rf build/ && tsc",
+		"build": "npm i && rm -rf build/ && tsc",
     "deploy": "pm2 startOrRestart ecosystem.config.js && pm2 save"
   },
   "author": "@lromeraj",

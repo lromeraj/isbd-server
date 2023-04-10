@@ -40,9 +40,13 @@ function startDecodingTask( filePath: string ): Promise<void> {
       } decoded`, decodedMsg );
       
       teleBot.getOwnerChatId( idChat => {
-        bot.sendMessage( idChat, `Message received from ${
+        bot.sendMessage( idChat, `MO\#${ 
+          decodedMsg.moHeader?.momsn 
+        } message received from \`${
           decodedMsg.moHeader?.imei 
-        }: ${decodedMsg.moPayload?.payload.toString()}` )
+        }\`: ${
+          decodedMsg.moPayload?.payload.toString()
+        }`, { parse_mode: 'Markdown' } )
       })
 
     } else {
@@ -68,7 +72,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
   const fileName = `sbd_${ Date.now() }.bin`;
   const filePath = path.join( process.env.DATA_DIR!, fileName );
   
-  logger.debug( `Creating file ${colors.yellow( filePath )} ...` );
+  logger.debug( `Creating file ${ colors.yellow( filePath ) } ...` );
 
   const file = fs.createWriteStream( filePath );
   
@@ -81,8 +85,8 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     fs.unlink( filePath );
   }
 
-  conn.on('error', err => {
-    logger.error( `Connection error => ${err.stack}` )
+  conn.on( 'error', err => {
+    logger.error( `Connection error => ${ err.stack }` )
     undo();
   })
 
@@ -91,9 +95,9 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
     undo();
   })
 
-  conn.on('close', () => {
+  conn.on( 'close', () => {
     file.close();
-    logger.success( `Data written to ${colors.green(filePath)}`)
+    logger.success( `Data written to ${ colors.green(filePath) }` )
     startDecodingTask( filePath );
   })
 
@@ -110,6 +114,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
       } bytes` );
 
       undo();
+
     } else {
       
       file.write( data, err => {
