@@ -1,11 +1,18 @@
 variables:
   GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
+  GIT_SUBMODULE_STRATEGY: recursive # https://docs.gitlab.com/ee/ci/git_submodules.html#use-git-submodules-in-cicd-jobs
   GIT_CLONE_PATH: $CI_BUILDS_DIR/isbd-server # https://stackoverflow.com/questions/64089704/gitlab-runner-change-builds-dir
+
+# ! Is important to allow CI_JOB_TOKEN in the private submodules referenced from this project: 
+# https://docs.gitlab.com/ee/ci/jobs/ci_job_token.html#add-a-project-to-the-inbound-job-token-scope-allowlist
+
+stages:
+  - build
 
 deploy-job:
   stage: build
   script:
-    - npm run build
+    - npm run build:prod
     - cp $ENV_FILE .env
     - chmod 600 .env
     - npm run deploy
