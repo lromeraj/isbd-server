@@ -1,49 +1,4 @@
-interface InformationElement {
-  id: number;
-  length: number;
-}
-
-interface MoHeader extends InformationElement {
-  
-  /**
-   * Each call data record (CDR) maintained in the Iridium Gateway Database is given a unique value
-   * independent of all other information in order to absolutely guarantee that each CDR is able to be
-   * differentiated from all others. This reference number, also called the auto ID, is included should the need for
-   * such differentiation and reference arise.
-   */
-  cdr: number;
-
-  imei: string;
-  status: number;
-  momsn: number;
-  mtmsn: number;
-  time: number;
-}
-
-interface MoPayload extends InformationElement {
-  id: number;
-  length: number;
-  payload: Buffer;
-}
-
-interface MoLocation extends InformationElement {
-  longitude: number;
-  latitude: number;
-  cepRadius: number;
-}
-
-interface MoConfirmation extends InformationElement {
-  status: number;
-}
-
-export interface MoMessage {
-  protoRevision: number;
-  overallLength: number;
-  moHeader?: MoHeader;
-  moPayload?: MoPayload;
-  moLocation?: MoLocation;
-  moConfirmation?: MoConfirmation;
-}
+import { Message } from "./msg";
 
 /**
  * 
@@ -52,9 +7,9 @@ export interface MoMessage {
  * @param offset 
  * @returns The number of bytes read
  */
-function decodeMoHeader( msg: MoMessage, data: Buffer, offset: number ): number {
+function decodeMoHeader( msg: Message.MO, data: Buffer, offset: number ): number {
 
-  msg.moHeader = {
+  msg.header = {
     id: data.readUint8( offset ),
     length: data.readUint16BE( offset + 1 ),
     cdr: data.readUint32BE( offset + 3 ),
@@ -66,12 +21,12 @@ function decodeMoHeader( msg: MoMessage, data: Buffer, offset: number ): number 
   };
 
   // IE header length + IE length
-  return 3 + msg.moHeader.length;
+  return 3 + msg.header.length;
 }
 
-function decodeMoLocation( msg: MoMessage, data: Buffer, offset: number ): number {
+function decodeMoLocation( msg: Message.MO, data: Buffer, offset: number ): number {
   
-  msg.moLocation = {
+  msg.location = {
     id: data.readUint8( offset ),
     length: data.readUInt16BE( offset + 1 ),
     latitude: 0,
@@ -88,23 +43,24 @@ function decodeMoLocation( msg: MoMessage, data: Buffer, offset: number ): numbe
   const ewi = header & 0x1 // north/south indicator
   const nsi = (header >> 1) & 0x1 // east/west indicator
 
-  msg.moLocation.latitude = ( nsi ? -1 : 1 ) * (latDeg + (latThoMin/60000))
-  msg.moLocation.longitude = ( ewi ? -1 : 1 ) * (lonDeg + (lonThoMin/60000))
+  msg.location.latitude = ( nsi ? -1 : 1 ) * (latDeg + (latThoMin/60000))
+  msg.location.longitude = ( ewi ? -1 : 1 ) * (lonDeg + (lonThoMin/60000))
 
-  return 3 + msg.moLocation.length;
+  return 3 + msg.location.length;
 }
 
-function decodeMoPayload( msg: MoMessage, data: Buffer, offset: number ): number {
+function decodeMoPayload( msg: Message.MO, data: Buffer, offset: number ): number {
   
-  msg.moPayload = {
-    id: data.readUint8( offset ),
-    length: data.readUInt16BE( offset + 1 ),
-    payload: Buffer.from([]),
+  const id = data.readUint8( offset ); 
+  const length = data.readUInt16BE( offset + 1 );
+
+  msg.payload = {
+    id,
+    length,
+    payload: data.subarray( offset + 3, offset + 3 + length ),
   };
 
-  msg.moPayload.payload = data.subarray( offset + 3, offset + 3 + msg.moPayload.length );
-
-  return 3 + msg.moPayload.length;
+  return 3 + length;
 }
 
 /**
@@ -115,16 +71,16 @@ function decodeMoPayload( msg: MoMessage, data: Buffer, offset: number ): number
  * @returns Decoded mobile originated message, 
  * in case of failure `null` is returned
  */
-export function decodeMoMessage( data: Buffer ): MoMessage | null {
+export function decodeMoMessage( data: Buffer ): Message.MO | null {
   
   let offset: number = 3;
 
   const protoRevision = data.readUint8( 0 );
   const overallLength = data.readUint16BE( 1 );
 
-  const msg: MoMessage = {
-    protoRevision,
-    overallLength,
+  const msg: Message.MO = {
+    protoRev: protoRevision,
+    length: overallLength,
   };
 
   for ( let i=offset; i < data.length; ) {
