@@ -9,7 +9,7 @@ import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
 import * as teleBot from "tele-bot";
-import { decodeMoMessage, MoMessage } from "./decoder";
+import { decodeMoMessage } from "./decoder";
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
@@ -41,11 +41,11 @@ function startDecodingTask( filePath: string ): Promise<void> {
       
       teleBot.getOwnerChatId( idChat => {
         bot.sendMessage( idChat, `MO\#${ 
-          decodedMsg.moHeader?.momsn 
+          decodedMsg.header?.momsn 
         } message received from \`${
-          decodedMsg.moHeader?.imei 
+          decodedMsg.header?.imei 
         }\`: ${
-          decodedMsg.moPayload?.payload.toString()
+          decodedMsg.payload?.payload.toString()
         }`, { parse_mode: 'Markdown' } )
       })
 
