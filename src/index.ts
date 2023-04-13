@@ -9,7 +9,10 @@ import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
 import * as teleBot from "tele-bot";
-import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
+
+// import { TCPTransport } from "isbd-emu/build/gss/transport/tcp"
+// import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
+import { GSS } from "isbd-emu"
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
@@ -31,7 +34,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
     logger.debug( `Decoding file ${ colors.yellow( filePath ) } ...`)
 
-    const decodedMsg = decodeMoMessage( buffer );
+    const decodedMsg = GSS.Decoder.decodeMoMessage( buffer );
     
     if ( decodedMsg ) {
       
@@ -133,10 +136,31 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
   })
 
-
 }
 
 async function main() {
+
+  /*
+  const transport = new TCPTransport({
+    host: "localhost",
+    port: 10800,
+  })
+  
+  transport.sendMessage({
+    header: {
+      imei: "098789675437658",
+      flags: 0,
+      ucmid: Buffer.from([ 0x21, 0x22, 0x45, 0x56 ]),
+    },
+    payload: {
+      payload: Buffer.from( "This is a payload" ),
+    }
+  }, encodeMtMessage ).then( () => {
+    console.log( "OK" );
+  }).catch( err => {
+    console.log( "NOPE" );
+  })
+  */
   
   if ( process.env.TCP_PORT === undefined ) {
     logger.error( "TCP_PORT not defined" );
