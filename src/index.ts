@@ -9,7 +9,7 @@ import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
 import * as teleBot from "tele-bot";
-import { decodeMoMessage } from "./decoder";
+import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";

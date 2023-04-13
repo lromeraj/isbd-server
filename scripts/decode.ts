@@ -4,8 +4,7 @@ import fs from "fs-extra";
 import colors from "colors";
 import logger from "../src/logger"
 import { Argument, Command, Option, program } from "commander";
-
-import { decodeMoMessage } from "../src/decoder";
+import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder";
 
 program
   .version( '0.0.1' )
