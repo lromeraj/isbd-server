@@ -8,7 +8,7 @@ variables:
 
 build:
   script:
-    - npm run build
+    - npm i
   tags:
     - isbd-server
   only:
@@ -17,7 +17,7 @@ build:
 deploy:
   stage: build
   script:
-    - npm run build
+    - npm i
     - cp $ENV_FILE .env
     - chmod 600 .env
     - npm run deploy

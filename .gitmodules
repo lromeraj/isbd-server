@@ -1,3 +1,8 @@
 [submodule "tele-bot"]
-	path = tele-bot
+	path = modules/tele-bot
+	branch = main
 	url = ../../../../npm/tele-bot.git
+[submodule "modules/isbd-emu"]
+	path = modules/isbd-emu
+	branch = main
+	url = ../iridium-sbd-emulator.git

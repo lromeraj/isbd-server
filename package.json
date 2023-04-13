@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon --config nodemon.json",
-		"build": "npm i && rm -rf build/ && tsc",
+    "build": "rm -rf build/ && tsc",
+    "prepare": "npm run build",
     "deploy": "pm2 startOrRestart ecosystem.config.js && pm2 save"
   },
   "author": "@lromeraj",
@@ -19,11 +20,13 @@
     "commander": "^10.0.0",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
+    "isbd-emu": "file:modules/isbd-emu",
+    "isbd-emulator": "file:modules/isbd-emu",
     "node-localstorage": "^2.2.1",
     "node-telegram-bot-api": "^0.61.0",
     "nodemon": "^2.0.21",
     "pm2": "^5.2.2",
-    "tele-bot": "file:tele-bot",
+    "tele-bot": "file:modules/tele-bot",
     "typescript": "^4.9.4",
     "winston": "^3.8.2"
   }
