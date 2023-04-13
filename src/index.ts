@@ -40,7 +40,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
       } decoded`, decodedMsg );
       
       teleBot.getOwnerChatId( idChat => {
-        bot.sendMessage( idChat, `MO\#${ 
+        bot.sendMessage( idChat, `MO \#${ 
           decodedMsg.header?.momsn 
         } message received from \`${
           decodedMsg.header?.imei 

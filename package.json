@@ -21,7 +21,6 @@
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
     "isbd-emu": "file:modules/isbd-emu",
-    "isbd-emulator": "file:modules/isbd-emu",
     "node-localstorage": "^2.2.1",
     "node-telegram-bot-api": "^0.61.0",
     "nodemon": "^2.0.21",
