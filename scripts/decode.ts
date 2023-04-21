@@ -4,14 +4,14 @@ import fs from "fs-extra";
 import colors from "colors";
 import logger from "../src/logger"
 import { Argument, Command, Option, program } from "commander";
-import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder";
+import { GSS } from "isbd-emu";
 
 program
   .version( '0.0.1' )
-  .description( 'Binary data decoder for Iridium SBD' )
+  .description( 'MO message decoder for Iridium SBD' )
 
 program.addArgument( 
-  new Argument( '[file]', 'Binary file path' ).argRequired() )
+  new Argument( '[file]', 'MO message file path' ).argRequired() )
 
 async function main() {
   program.parse();
@@ -25,7 +25,7 @@ async function main() {
     logger.debug( `Reading ${colors.yellow( filePath )} ...`)
 
     const fileData = fs.readFileSync( filePath );
-    const moMessage = decodeMoMessage( fileData );
+    const moMessage = GSS.Decoder.decodeMoMessage( fileData );
     
     if ( moMessage ) {
       console.log( moMessage );
@@ -38,6 +38,5 @@ async function main() {
   }
 
 }
-
 
 main();

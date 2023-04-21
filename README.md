@@ -1,27 +1,64 @@
 # Iridium SBD Direct IP Server
-This is a server for testing *Iridium SBD Direct IP* messages and should not be used in production environments.
+This repository provides a server for testing Iridium SBD Direct IP messages. This server can be used with your official Iridium Direct IP server provider and also with the following [Iridium SBD emulator](https://glab.lromeraj.net/ucm/miot/tfm/iridium-sbd-emulator).
 
 # Building the server
-To build the server you need *Node JS* and *npm* (*Node Package Manager*).
 
-Before building the server you have to create the environment file `.env` in the root directory of your server and type your desired listening port:
-``` txt
-TCP_PORT=45671
-```
+This server depends on the `NodeJS` runtime environment (which you probably have already installed) but in case you don't, you can simply do:
 
-Execute the following command to start the building process:
+> **NOTE**: the following instructions assume you are working from Ubuntu. If you need specific instructions for your OS, search in Google how to install `Node JS v14.x`.
+
 ``` bash
-npm run buid
+curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
 ```
+
+Check it's contents if you don't feel comfortable with a direct "blind" install:
+``` bash
+nano nodesource_setup.sh
+```
+
+Finally install it:
+``` bash
+sudo bash nodesource_setup.sh
+```
+
+If `node` and `npm` are accesible from your path, you are ready to build the server:
+``` bash
+npm i
+```
+
+Before building the server you have to create the environment file `.env` in the root directory of your server and specify your own configuration:
+``` bash
+npm run env-template
+```
+
+This server implements a tiny Telegram bot to notify you about incoming _MO_ (_Mobile Originated_) messages. See the [following instructions](https://glab.lromeraj.net/npm/tele-bot) if you don't know how to create a new Telegram bot.
+
+This will create a default environment file in the root of the repository, see the [following table]() to see all available options.
+
+
+
+
+# Environment variables
+| Variable   |      Description      |  Default |
+|----------|:-------------:|------:|
+| MO_TCP_PORT |  Port where the server will listen for incoming TCP packets | `10800` |
+| MO_MSG_DIR | Directory where the incoming _MO_ messages will be stored. | `mo/` |
+| TELE_BOT_TOKEN | Telegram bot access token | -- |
+| TELE_BOT_SECRET | Telegram bot secret used during handshake | -- |
+
+
+
 
 # Running the server
 
-To execute the test server use:
+Before running the server, you must create an environment file like
+
+To execute the server in the current terminal use:
 ```
 npm run test
 ```
 
-To execute the test server using a background process manager use:
+To execute the server using a background process manager use:
 ``` bash
 npm run start
 ```
@@ -32,7 +69,8 @@ npm run stop
 ```
 
 # Server functioning
-The server will start listening on the port specified in the environment file. For each socket connection the server follows a simple logic:
+
+The server will start listening on the port specified in the [environment file](). For each socket connection the server follows a simple logic:
   1. A file will be created with the following naming convention: sbd_<timestamp>.bin inside the `data/` directory.
   2. A watchdog timeout is created in order to limit the maximum time a connection can be opened in order to limit resources used.
   3. All data sent from the socket will be written to this file with a maximum fixed limit of `2048` bytes. 

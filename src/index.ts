@@ -9,7 +9,11 @@ import path from "path";
 import fs from "fs-extra";
 import logger from "./logger";
 import * as teleBot from "tele-bot";
-import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
+
+// import { TCPTransport } from "isbd-emu/build/gss/transport/tcp"
+// import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
+import { GSS } from "isbd-emu"
+import { envIsValid } from "./env";
 
 // import fileUpload, { UploadedFile } from "express-fileupload";
 // import fileUpload from "express-fileupload";
@@ -19,9 +23,18 @@ const DATA_SIZE_LIMIT = 1024;
 
 const server = net.createServer();
 const bot = teleBot.setup({
-  token: process.env.BOT_TOKEN!, 
-  secret: process.env.BOT_SECRET!,
+  token: process.env.TELE_BOT_TOKEN!, 
+  secret: process.env.TELE_BOT_SECRET!,
 });
+
+
+bot.on( 'polling_error', err => {
+  logger.error( `Bot polling error: ${ err.message }`)
+})
+
+bot.on( 'error', err => {
+  logger.error( `Bot error: ${ err.message }` );
+})
 
 // const decodeTasks: Promise<MoMessage>[] = []
 
@@ -31,7 +44,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
     logger.debug( `Decoding file ${ colors.yellow( filePath ) } ...`)
 
-    const decodedMsg = decodeMoMessage( buffer );
+    const decodedMsg = GSS.Decoder.decodeMoMessage( buffer );
     
     if ( decodedMsg ) {
       
@@ -40,13 +53,24 @@ function startDecodingTask( filePath: string ): Promise<void> {
       } decoded`, decodedMsg );
       
       teleBot.getOwnerChatId( idChat => {
-        bot.sendMessage( idChat, `MO \#${ 
-          decodedMsg.header?.momsn 
-        } message received from \`${
-          decodedMsg.header?.imei 
-        }\`: ${
-          decodedMsg.payload?.payload.toString()
-        }`, { parse_mode: 'Markdown' } )
+
+        if ( decodedMsg.payload ) {
+          
+          bot.sendMessage( idChat, `MO \#${ 
+            decodedMsg.header?.momsn 
+          } message received from ISU \`${
+            decodedMsg.header?.imei 
+          }\`:\n${
+            decodedMsg.payload?.payload.toString()
+          }`, { parse_mode: 'Markdown' } )
+
+        } else {
+          
+          bot.sendMessage( idChat, `Session initiated by \`${
+            decodedMsg.header?.imei 
+          }\` `, { parse_mode: 'Markdown' } )
+
+        }
       })
 
     } else {
@@ -70,9 +94,11 @@ function startDecodingTask( filePath: string ): Promise<void> {
 const connectionHandler: (socket: net.Socket) => void = conn => {
   
   const fileName = `sbd_${ Date.now() }.bin`;
-  const filePath = path.join( process.env.DATA_DIR!, fileName );
+  const filePath = path.join( process.env.MO_MSG_DIR!, fileName );
   
-  logger.debug( `Creating file ${ colors.yellow( filePath ) } ...` );
+  logger.debug( `Creating file ${ 
+    colors.yellow( filePath ) 
+  } ...` );
 
   const file = fs.createWriteStream( filePath );
   
@@ -133,43 +159,69 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
   })
 
-
 }
 
 async function main() {
+
+  /*
+  const transport = new TCPTransport({
+    host: "localhost",
+    port: 10800,
+  })
   
-  if ( process.env.TCP_PORT === undefined ) {
-    logger.error( "TCP_PORT not defined" );
+  transport.sendMessage({
+    header: {
+      imei: "098789675437658",
+      flags: 0,
+      ucmid: Buffer.from([ 0x21, 0x22, 0x45, 0x56 ]),
+    },
+    payload: {
+      payload: Buffer.from( "This is a payload" ),
+    }
+  }, encodeMtMessage ).then( () => {
+    console.log( "OK" );
+  }).catch( err => {
+    console.log( "NOPE" );
+  })
+  */
+  if ( ! envIsValid() ) {
+    logger.error( `Please check your environment file` );
+    process.exit( 1 );
+  }
+
+  const moMsgDir = process.env.MO_MSG_DIR!;
+
+  if ( process.env.MO_TCP_PORT === undefined ) {
+    logger.error( 'MO_TCP_PORT not defined' );
     process.exit(1);
   }
   
-  if ( process.env.DATA_DIR === undefined ) {
-    logger.error( "DATA_DIR not defined" );
+  if ( moMsgDir === undefined ) {
+    logger.error( 'MO_MSG_DIR not defined' );
     process.exit(1);
   }
 
-  const dataDir = process.env.DATA_DIR!;
 
-  if ( !fs.pathExistsSync( dataDir ) ) {
-    await fs.mkdir( dataDir, { recursive: true }).then( () => {
-      logger.success( `Data dir=${colors.yellow( dataDir )} created successfully` );
+  if ( !fs.pathExistsSync( moMsgDir ) ) {
+    await fs.mkdir( moMsgDir, { recursive: true }).then( () => {
+      logger.success( `MO message dir=${colors.yellow( moMsgDir )} created successfully` );
     }).catch( err => {
-      logger.error( `Could not create dir=${ colors.yellow( dataDir ) } => ${err.stack}` );
+      logger.error( `Could not create dir=${ colors.yellow( moMsgDir ) } => ${err.stack}` );
       process.exit(1);
     })
 
   } else {
-    logger.info( `Using data dir=${colors.yellow( dataDir )} `)
+    logger.info( `Using data dir=${colors.yellow( moMsgDir )} `)
   }
   
   server.on( 'connection', connectionHandler );
 
-  server.listen( parseInt( process.env.TCP_PORT ), () => {
-    logger.info( `Listening on port ${ colors.yellow( process.env.TCP_PORT! ) }` );
+  server.listen( parseInt( process.env.MO_TCP_PORT ), () => {
+    logger.info( `Listening on port ${ colors.yellow( process.env.MO_TCP_PORT! ) }` );
   })
 
   teleBot.getOwnerChatId( idChat => {
-    bot.sendMessage( idChat, "Iridium SBD server ready" )
+    bot.sendMessage( idChat, 'Iridium SBD server ready' )
   })
 
 }
