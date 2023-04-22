@@ -85,7 +85,7 @@ The server will start listening on the port specified in the `MO_TCP_PORT` envir
   3. All data sent from the socket will be written to a new file with a maximum fixed limit of `1024` bytes. 
       - If this limit is exceded, the connection will be destroyed and the file will be removed.
   4. If the received data is within the limits, the connection will be gracefully closed.
-  5. A task will be created to analyze the file contents, if the file has a valid *Mobile Originated Message* it will be permanently stored inside the `MO_MSG_DIR` and renamed using the following naming convention: `<IMEI>_<MOMSN>.sbd`, otherwise the file will be removed.
+  5. A task will be created to analyze the file contents, if the file has a valid _MO_ message it will be permanently stored inside the `MO_MSG_DIR` and renamed using the following naming convention: `<IMEI>_<MOMSN>.sbd`, otherwise the file will be removed.
 
 # Proxy
 If you are going to expose this server to a WAN, it is recommended to use a reverse proxy in order to increase security, in this case we are using *HAProxy* with the following configuration:
@@ -109,7 +109,7 @@ This checks if the address which requested TCP handshake is whitelisted. In this
 
 # Tools
 
-> **IMPORTANT**: the following tools have been deprecated after including the ISBD emulator as submodule which already includes all of this tools natively.
+> **IMPORTANT**: the following tools have been deprecated after including the ISBD emulator as a submodule which already includes all of this tools natively.
  
 This server comes with some scripts which will simplify some tasks like decoding _MO_ messages. To execute the different scripts you can use the `sbd-env.sh` file to load server related environment:
 ``` bash
