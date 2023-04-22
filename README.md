@@ -79,7 +79,7 @@ Take a look to the [following URL](https://pm2.keymetrics.io/docs/usage/process-
 
 # Server functioning
 
-The server will start listening on the port specified in the [environment file](#environment-variables). For each socket connection the server follows the following logic:
+The server will start listening on the port specified in the `MO_TCP_PORT` environment variable. For each socket connection the server follows the following logic:
   1. A file will be created with the following naming convention: `<IMEI>_<MOMSN>.sbd` inside the specified `MO_MSG_DIR` directory.
   2. A watchdog timeout is created in order to limit the maximum time a connection can be opened in order to limit resources used.
   3. All data sent from the socket will be written to a new file with a maximum fixed limit of `1024` bytes. 
