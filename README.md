@@ -80,12 +80,12 @@ Take a look to the [following URL](https://pm2.keymetrics.io/docs/usage/process-
 # Server functioning
 
 The server will start listening on the port specified in the `MO_TCP_PORT` environment variable. For each socket connection the server follows the following logic:
-  1. A file will be created with the following naming convention: `<IMEI>_<MOMSN>.sbd` inside the specified `MO_MSG_DIR` directory.
+  1. A file will be created with the following naming convention: `RAW_<IID>.bin` inside the specified `MO_MSG_DIR` directory.
   2. A watchdog timeout is created in order to limit the maximum time a connection can be opened in order to limit resources used.
   3. All data sent from the socket will be written to a new file with a maximum fixed limit of `1024` bytes. 
       - If this limit is exceded, the connection will be destroyed and the file will be removed.
   4. If the received data is within the limits, the connection will be gracefully closed.
-  5. A task will be created to analyze the file contents, if the file has a valid *Mobile Originated Message* it will be permanently stored inside the `MO_MSG_DIR`, otherwise the the file will be removed.
+  5. A task will be created to analyze the file contents, if the file has a valid *Mobile Originated Message* it will be permanently stored inside the `MO_MSG_DIR` and renamed using the following naming convention: `<IMEI>_<MOMSN>.sbd`, otherwise the file will be removed.
 
 # Proxy
 If you are going to expose this server to a WAN, it is recommended to use a reverse proxy in order to increase security, in this case we are using *HAProxy* with the following configuration:
