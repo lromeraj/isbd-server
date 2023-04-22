@@ -40,10 +40,11 @@ A file named `.env` should have appeared in the root of the repository, here you
 
 # Running the server
 
-After building the server, you should see a valid symlink in ht eroot of the directroy pointing to some script inside the `build/` directory, use the following command to see some command line options of the server:
+After building the server, you should see a valid symlink in the root of the directory pointing to some script inside the `build/` directory, use the following command to see some command line options of the server:
 ```
 node server.js --help
 ```
+
 This should output something like:
 ``` txt
 Usage: server [options]
