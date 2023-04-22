@@ -15,7 +15,7 @@ export const DEFAULT_ENV: {
   }),
 };
 
-export function envIsValid(): boolean {
+export function checkEnv(): boolean {
   let valid = true
   for ( let key in DEFAULT_ENV ) {
     if ( process.env[ key ] === undefined ) {

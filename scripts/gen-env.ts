@@ -10,7 +10,9 @@ async function main() {
     for ( let key in DEFAULT_ENV ) {
       envContent += `${key}=${DEFAULT_ENV[key]}\n`
     }
-    fs.writeFileSync( envPath, envContent );
+    fs.writeFileSync( envPath, envContent, { 
+      mode: fs.constants.S_IRUSR | fs.constants.S_IWUSR 
+    });
   }
 
 }
