@@ -1,35 +1,34 @@
 import colors from "colors"
-import winston, { Logger } from "winston";
+import winston, { LeveledLogMethod, Logger } from "winston";
 
 interface CustomLogger extends Logger {
-  success: Function,
+  success: LeveledLogMethod,
+  setLevel: ( lvl: number | string ) => void,
 }
 
-const config = {
+const levels: {
+  [key: string]: number
+} = {
+  error:    0,
+  success:  1,
+  warn:     2,
+  info:     3,
+  debug:    4,
+}
 
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    success: 3,
-    debug: 4,
-  },
-
-  levelFormat: {
-    "error":    `[ ${colors.bold.red("ER")} ]`,
-    "info":     `[${colors.bold.blue("INFO")}]`,
-    "warn":     `[${colors.bold.yellow("WARN")}]`,
-    "success":  `[ ${colors.bold.green("OK")} ]`,
-    "debug":    `[${colors.bold.magenta("DBUG")}]`,
-  }
-
-};
-
+const levelFormat: {
+  [key: string]: string
+} = {
+  "error":    `[ ${colors.bold.red("ER")} ]`,
+  "info":     `[${colors.bold.blue("INFO")}]`,
+  "warn":     `[${colors.bold.yellow("WARN")}]`,
+  "success":  `[ ${colors.bold.green("OK")} ]`,
+  "debug":    `[${colors.bold.magenta("DBUG")}]`,
+}
 
 const logger = winston.createLogger({
-  
-  level: "debug",
-  levels: config.levels,
+  level: 'debug',
+  levels,
   format: winston.format.combine(
     // winston.format.label({ label: 'immoliste' }),
     // winston.format.colorize({ message: true }),
@@ -44,9 +43,10 @@ const logger = winston.createLogger({
       const {
         timestamp, level, message, ...args
       } = info;
-      
-      const levelFormat: { [key: string]: string } = config.levelFormat; 
-      return `${timestamp} ${ levelFormat[ level ] }: ${message} ${Object.keys(args).length ? JSON.stringify(args, null, 2) : ''}`;
+
+      return `${ timestamp } ${ levelFormat[ level ] }: ${ message } ${
+        Object.keys( args ).length ? JSON.stringify( args, null, 2 ) : ''
+      }`;
     
     })  
   ),
@@ -55,5 +55,23 @@ const logger = winston.createLogger({
   ],
   exitOnError: false
 }) as CustomLogger;
+
+logger.setLevel = ( targetLevel: number | string ) => {
+  
+  let level = 'debug';
+  
+  if ( typeof targetLevel === 'string' ) {
+    level = targetLevel;
+  } else {    
+    for ( let key in levels ) {
+      if ( levels[ key ] === targetLevel ) {
+        level = key;
+        break;
+      }
+    }
+  }
+
+  logger.level = level
+}
 
 export default logger;
