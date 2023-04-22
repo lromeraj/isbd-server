@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-
 dotenv.config();
 
 import os from "os";
@@ -13,65 +12,73 @@ import * as teleBot from "tele-bot";
 // import { TCPTransport } from "isbd-emu/build/gss/transport/tcp"
 // import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
 import { GSS } from "isbd-emu"
-import { envIsValid } from "./env";
+import { checkEnv } from "./env";
+import { Option, program } from "commander";
+import { MO_MSG_SIZE_LIMIT } from "./constants";
+import { botErr, getBot } from "./bot";
 
-// import fileUpload, { UploadedFile } from "express-fileupload";
-// import fileUpload from "express-fileupload";
-// const fileUpload = require('express-fileupload');
 
-const DATA_SIZE_LIMIT = 1024;
+program
+  .version( '0.1.2' )
+  .description( 'A simple Iridium SBD vendor server application' )
+  .option( '-v, --verbose', 'Verbosity level', 
+    (_, prev) => prev + 1, 1 )
+
+program.addOption(
+  new Option( '--mo-tcp-port <number>', 'MO server port' )
+    .argParser( v => parseInt( v ) ) )
+
+program.addOption(
+  new Option( '--mo-msg-dir <string>', 'MO message directory' ) )
 
 const server = net.createServer();
-const bot = teleBot.setup({
-  token: process.env.TELE_BOT_TOKEN!, 
-  secret: process.env.TELE_BOT_SECRET!,
-});
+  
 
+function botSendMoMessage( msg: GSS.Message.MO ) {
+  
+  teleBot.getOwnerChatId( idChat => {
+        
+    if ( msg.payload ) {
+      
+      getBot( bot => {
 
-bot.on( 'polling_error', err => {
-  logger.error( `Bot polling error: ${ err.message }`)
-})
+        bot.sendMessage( idChat, `MO \#${ 
+          msg.header?.momsn 
+        } message received from ISU \`${
+          msg.header?.imei 
+        }\`:\n${
+          msg.payload?.payload.toString()
+        }`, { parse_mode: 'Markdown' } ).catch( botErr );
+      })     
 
-bot.on( 'error', err => {
-  logger.error( `Bot error: ${ err.message }` );
-})
+    } else {
 
-// const decodeTasks: Promise<MoMessage>[] = []
+      getBot( bot => {
+        bot.sendMessage( idChat, `Session initiated by \`${
+          msg.header?.imei 
+        }\` `, { parse_mode: 'Markdown' } ).catch( botErr );
+      })
+
+    }
+
+  })
+}
 
 function startDecodingTask( filePath: string ): Promise<void> {
 
   return fs.readFile( filePath ).then( buffer => {
 
-    logger.debug( `Decoding file ${ colors.yellow( filePath ) } ...`)
+    logger.debug( `Decoding file ${ colors.yellow( filePath ) } ...` )
 
     const decodedMsg = GSS.Decoder.decodeMoMessage( buffer );
     
     if ( decodedMsg ) {
       
-      logger.success( `File ${
+      logger.info( `File ${
         colors.yellow( filePath )
-      } decoded`, decodedMsg );
-      
-      teleBot.getOwnerChatId( idChat => {
+      } decoded` );
 
-        if ( decodedMsg.payload ) {
-          
-          bot.sendMessage( idChat, `MO \#${ 
-            decodedMsg.header?.momsn 
-          } message received from ISU \`${
-            decodedMsg.header?.imei 
-          }\`:\n${
-            decodedMsg.payload?.payload.toString()
-          }`, { parse_mode: 'Markdown' } )
-
-        } else {
-          
-          bot.sendMessage( idChat, `Session initiated by \`${
-            decodedMsg.header?.imei 
-          }\` `, { parse_mode: 'Markdown' } )
-
-        }
-      })
+      botSendMoMessage( decodedMsg );
 
     } else {
       
@@ -123,7 +130,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
   conn.on( 'close', () => {
     file.close();
-    logger.success( `Data written to ${ colors.green(filePath) }` )
+    logger.info( `Data written to ${ colors.green(filePath) }` )
     startDecodingTask( filePath );
   })
 
@@ -133,10 +140,10 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
     dataSize += data.length;
 
-    if ( dataSize > DATA_SIZE_LIMIT ) {
+    if ( dataSize > MO_MSG_SIZE_LIMIT ) {
       
       logger.warn( `Data size limit exceded by ${
-        colors.yellow( ( dataSize - DATA_SIZE_LIMIT ).toString() ) 
+        colors.yellow( ( dataSize - MO_MSG_SIZE_LIMIT ).toString() ) 
       } bytes` );
 
       undo();
@@ -148,7 +155,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
         if ( err == null ) {
           logger.debug( `Written ${
             colors.yellow( data.length.toString() )
-          } bytes to ${colors.yellow(filePath)}` );
+          } bytes to ${ colors.yellow(filePath) }` );
         } else {
           logger.error( `Data write failed => ${ err.stack }` );
         }
@@ -184,10 +191,25 @@ async function main() {
     console.log( "NOPE" );
   })
   */
-  if ( ! envIsValid() ) {
+
+  program.parse();
+  const opts = program.opts();
+
+  logger.setLevel( opts.verbose );
+  
+  if ( opts.moMsgDir ) {
+    process.env.MO_MSG_DIR = opts.moMsgDir;
+  }
+
+  if ( opts.moTcpPort ) {
+    process.env.MO_TCP_PORT = opts.moTcpPort;
+  }
+
+  if ( !checkEnv() ) {
     logger.error( `Please check your environment file` );
     process.exit( 1 );
   }
+
 
   const moMsgDir = process.env.MO_MSG_DIR!;
 
@@ -201,27 +223,39 @@ async function main() {
     process.exit(1);
   }
 
-
   if ( !fs.pathExistsSync( moMsgDir ) ) {
-    await fs.mkdir( moMsgDir, { recursive: true }).then( () => {
-      logger.success( `MO message dir=${colors.yellow( moMsgDir )} created successfully` );
+
+    await fs.mkdir( moMsgDir, { 
+      recursive: true 
+    }).then( () => {
+      
+      logger.success( `MO message dir=${
+        colors.yellow( moMsgDir )
+      } created successfully` );
+
     }).catch( err => {
-      logger.error( `Could not create dir=${ colors.yellow( moMsgDir ) } => ${err.stack}` );
+      
+      logger.error( `Could not create dir=${
+        colors.yellow( moMsgDir )
+      } => ${err.stack}` );
+      
       process.exit(1);
     })
 
   } else {
-    logger.info( `Using data dir=${colors.yellow( moMsgDir )} `)
+    logger.info( `Using data dir=${ colors.yellow( moMsgDir ) }` )
   }
   
   server.on( 'connection', connectionHandler );
 
   server.listen( parseInt( process.env.MO_TCP_PORT ), () => {
-    logger.info( `Listening on port ${ colors.yellow( process.env.MO_TCP_PORT! ) }` );
+    logger.success( `Listening on port ${ colors.yellow( process.env.MO_TCP_PORT! ) }` );
   })
 
   teleBot.getOwnerChatId( idChat => {
-    bot.sendMessage( idChat, 'Iridium SBD server ready' )
+    getBot( bot => {
+      bot.sendMessage( idChat, 'Iridium SBD server ready' ).catch( botErr );
+    })
   })
 
 }
