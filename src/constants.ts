@@ -1,0 +1,1 @@
+export const MO_MSG_SIZE_LIMIT = 1024;
