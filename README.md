@@ -38,9 +38,6 @@ A file named `.env` should have appeared in the root of the repository, here you
 | `TELE_BOT_TOKEN` | Telegram bot access token | -- |
 | `TELE_BOT_SECRET` | Telegram bot secret used during handshake | -- |
 
-## Command line options
-
-
 # Running the server
 
 After building the server, you should see a valid symlink in ht eroot of the directroy pointing to some script inside the `build/` directory, use the following command to see some command line options of the server:
