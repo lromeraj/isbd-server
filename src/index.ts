@@ -17,7 +17,6 @@ import { Option, program } from "commander";
 import { MO_MSG_SIZE_LIMIT } from "./constants";
 import { botErr, getBot } from "./bot";
 
-
 program
   .version( '0.1.2' )
   .description( 'A simple Iridium SBD vendor server application' )
@@ -32,7 +31,14 @@ program.addOption(
   new Option( '--mo-msg-dir <string>', 'MO message directory' ) )
 
 const server = net.createServer();
-  
+
+const _context = {
+  iid: 0,
+}
+
+function getIID() {
+  return _context.iid++; 
+}
 
 function botSendMoMessage( msg: GSS.Message.MO ) {
   
@@ -68,29 +74,31 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
   return fs.readFile( filePath ).then( buffer => {
 
-    logger.debug( `Decoding file ${ colors.yellow( filePath ) } ...` )
-
     const decodedMsg = GSS.Decoder.decodeMoMessage( buffer );
     
     if ( decodedMsg ) {
       
-      logger.info( `File ${
+      const newFilePath = path.join( 
+        process.env.MO_MSG_DIR!, `${
+          decodedMsg.header?.imei
+        }_${
+          decodedMsg.header?.momsn
+            .toString().padStart( 5, '0' )
+        }.sbd` )
+      
+      fs.rename( filePath, newFilePath );
+
+      logger.success( `File ${
         colors.yellow( filePath )
-      } decoded` );
+      } successfully decoded => ${ colors.green( newFilePath ) }` );
 
       botSendMoMessage( decodedMsg );
 
     } else {
       
       logger.error( `Decode failed for ${
-        colors.yellow( filePath )
-      } failed, invalid binary format` );
-      
-      fs.unlink( filePath ).then( () => {
-        logger.warn( `File ${ 
-          colors.yellow( filePath ) 
-        } removed` );
-      })
+        colors.red( filePath )
+      }, invalid binary format` );      
       
     }
 
@@ -100,13 +108,9 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
 const connectionHandler: (socket: net.Socket) => void = conn => {
   
-  const fileName = `sbd_${ Date.now() }.bin`;
+  const fileName = `raw_${ getIID() }.bin`;
   const filePath = path.join( process.env.MO_MSG_DIR!, fileName );
   
-  logger.debug( `Creating file ${ 
-    colors.yellow( filePath ) 
-  } ...` );
-
   const file = fs.createWriteStream( filePath );
   
   conn.setTimeout( 1000 );
@@ -114,7 +118,7 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
   const undo = () => {
     conn.removeAllListeners();
     conn.end();
-
+    
     fs.unlink( filePath );
   }
 
@@ -130,13 +134,12 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
   conn.on( 'close', () => {
     file.close();
-    logger.info( `Data written to ${ colors.green(filePath) }` )
     startDecodingTask( filePath );
   })
 
   let dataSize = 0;
 
-  conn.on('data', data => {
+  conn.on( 'data', data => {
 
     dataSize += data.length;
 
