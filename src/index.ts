@@ -108,7 +108,7 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
 const connectionHandler: (socket: net.Socket) => void = conn => {
   
-  const fileName = `raw_${ getIID() }.bin`;
+  const fileName = `RAW_${ getIID() }.bin`;
   const filePath = path.join( process.env.MO_MSG_DIR!, fileName );
   
   const file = fs.createWriteStream( filePath );
