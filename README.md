@@ -33,7 +33,7 @@ A file named `.env` should have appeared in the root of the repository, here you
 # Environment variables
 | Variable | Description | Default |
 |----|----|----|
-| `MO_TCP_PORT` | Port where the server will listen for incoming TCP packets | `10800` |
+| `MO_TCP_PORT` | Port where the server will listen for incoming TCP packets | `10801` |
 | `MO_MSG_DIR` | Directory where the incoming _MO_ messages will be stored. Relative to the process working directory | `mo/` |
 | `TELE_BOT_TOKEN` | Telegram bot access token | -- |
 | `TELE_BOT_SECRET` | Telegram bot secret used during handshake | -- |
@@ -88,7 +88,7 @@ The server will start listening on the port specified in the `MO_TCP_PORT` envir
   4. If the received data is within the limits, the connection will be gracefully closed.
   5. A task will be created to analyze the file contents, if the file has a valid _MO_ message it will be permanently stored inside the `MO_MSG_DIR` and renamed using the following naming convention: `<IMEI>_<MOMSN>.sbd`, otherwise the file will be removed.
 
-# Proxy
+# Reverse proxy
 If you are going to expose this server to a WAN, it is recommended to use a reverse proxy in order to increase security, in this case we are using *HAProxy* with the following configuration:
 
 ``` config

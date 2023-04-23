@@ -15,7 +15,7 @@ import { GSS } from "isbd-emu"
 import { checkEnv } from "./env";
 import { Option, program } from "commander";
 import { MO_MSG_SIZE_LIMIT } from "./constants";
-import { botErr, getBot } from "./bot";
+import { botErr } from "./bot";
 
 program
   .version( '0.1.2' )
@@ -42,32 +42,40 @@ function getIID() {
 
 function botSendMoMessage( msg: GSS.Message.MO ) {
   
-  teleBot.getOwnerChatId( idChat => {
-        
+  teleBot.getOwnerChatId( ( bot, idChat ) => {
+    
+    const locationLink = `https://maps.google.com/?q=${
+        msg.location?.latitude.toFixed(7)
+      },${
+        msg.location?.longitude.toFixed(7)
+      }&ll=${
+        msg.location?.latitude.toFixed(7)
+      },${
+        msg.location?.longitude.toFixed(7)
+      }&z=5`
+
     if ( msg.payload ) {
+
+      bot.sendMessage( idChat, `MO \#${ 
+        msg.header?.momsn 
+      } message received from ISU \`${
+        msg.header?.imei 
+      }\` at the [following location](${
+        locationLink
+      }):\n${
+        msg.payload?.payload.toString()
+      }`, { parse_mode: 'Markdown' } ).catch( botErr )
       
-      getBot( bot => {
-
-        bot.sendMessage( idChat, `MO \#${ 
-          msg.header?.momsn 
-        } message received from ISU \`${
-          msg.header?.imei 
-        }\`:\n${
-          msg.payload?.payload.toString()
-        }`, { parse_mode: 'Markdown' } ).catch( botErr );
-      })     
-
     } else {
 
-      getBot( bot => {
-        bot.sendMessage( idChat, `Session initiated by \`${
-          msg.header?.imei 
-        }\` `, { parse_mode: 'Markdown' } ).catch( botErr );
-      })
+      bot.sendMessage( idChat, `Session initiated by \`${
+        msg.header?.imei 
+      }\` `, { parse_mode: 'Markdown' } ).catch( botErr );
 
     }
 
   })
+
 }
 
 function startDecodingTask( filePath: string ): Promise<void> {
@@ -173,6 +181,8 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
 async function main() {
 
+
+
   /*
   const transport = new TCPTransport({
     host: "localhost",
@@ -194,6 +204,11 @@ async function main() {
     console.log( "NOPE" );
   })
   */
+
+  teleBot.setup({
+    token: process.env.TELE_BOT_TOKEN,
+    secret: process.env.TELE_BOT_SECRET,
+  })
 
   program.parse();
   const opts = program.opts();
@@ -252,13 +267,13 @@ async function main() {
   server.on( 'connection', connectionHandler );
 
   server.listen( parseInt( process.env.MO_TCP_PORT ), () => {
-    logger.success( `Listening on port ${ colors.yellow( process.env.MO_TCP_PORT! ) }` );
+    logger.success( `Listening on port ${ 
+      colors.yellow( process.env.MO_TCP_PORT! ) 
+    }` );
   })
 
-  teleBot.getOwnerChatId( idChat => {
-    getBot( bot => {
-      bot.sendMessage( idChat, 'Iridium SBD server ready' ).catch( botErr );
-    })
+  teleBot.getOwnerChatId( ( bot, idChat ) => {
+    bot.sendMessage( idChat, 'Iridium SBD server ready' ).catch( botErr );
   })
 
 }
