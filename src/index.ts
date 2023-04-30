@@ -6,8 +6,10 @@ import colors from "colors";
 import net from "net";
 import path from "path";
 import fs from "fs-extra";
-import logger from "./logger";
+import * as logger from "./logger";
 import * as teleBot from "tele-bot";
+
+const log = logger.create( 'main' );
 
 // import { TCPTransport } from "isbd-emu/build/gss/transport/tcp"
 // import { decodeMoMessage } from "isbd-emu/build/gss/msg/decoder"
@@ -67,10 +69,18 @@ function botSendMoMessage( msg: GSS.Message.MO ) {
       }`, { parse_mode: 'Markdown' } ).catch( botErr )
       
     } else {
-
+    
       bot.sendMessage( idChat, `Session initiated by \`${
         msg.header?.imei 
-      }\` `, { parse_mode: 'Markdown' } ).catch( botErr );
+      }\` ${
+        
+        JSON.stringify({
+          momsn: msg.header?.momsn,
+          mtmsn: msg.header?.mtmsn,
+          status: msg.header?.status,
+        }, null, 2 )
+
+      }\n`, { parse_mode: 'Markdown' } ).catch( botErr );
 
     }
 
@@ -96,18 +106,20 @@ function startDecodingTask( filePath: string ): Promise<void> {
       
       fs.rename( filePath, newFilePath );
 
-      logger.success( `File ${
+      log.success( `File ${
         colors.yellow( filePath )
       } successfully decoded => ${ colors.green( newFilePath ) }` );
 
       botSendMoMessage( decodedMsg );
 
     } else {
-      
-      logger.error( `Decode failed for ${
+
+      log.error( `Decode failed for ${
         colors.red( filePath )
       }, invalid binary format` );      
       
+      fs.unlinkSync( filePath );
+
     }
 
   })
@@ -116,33 +128,49 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
 const connectionHandler: (socket: net.Socket) => void = conn => {
   
+  const SOCKET_TIMEOUT = 1000;
   const fileName = `RAW_${ getIID() }.bin`;
   const filePath = path.join( process.env.MO_MSG_DIR!, fileName );
-  
   const file = fs.createWriteStream( filePath );
-  
-  conn.setTimeout( 1000 );
 
-  const undo = () => {
-    conn.removeAllListeners();
-    conn.end();
+  conn.setTimeout( SOCKET_TIMEOUT );  
+
+  const destroy = () => {
     
+    conn.destroy();
+    conn.removeAllListeners();
+    
+    file.destroy();
+    file.removeAllListeners();
+
     fs.unlink( filePath );
   }
 
+  file.on( 'error', err => {
+    log.error( `Write error ${ 
+      colors.red( filePath ) 
+    } => ${ err.message }` );
+    destroy();
+  })
+
   conn.on( 'error', err => {
-    logger.error( `Connection error => ${ err.stack }` )
-    undo();
+    log.error( `Connection error => ${ err.stack }` )
+    destroy();
   })
 
   conn.on( 'timeout', () => {
-    logger.error( `Connection timeout` );
-    undo();
+    log.error( `Connection timeout` );
+    destroy();
   })
 
   conn.on( 'close', () => {
+    
     file.close();
-    startDecodingTask( filePath );
+
+    startDecodingTask( filePath ).catch( err => {
+      log.error( `Decode task failed => ${ err.stack }` );
+    });
+
   })
 
   let dataSize = 0;
@@ -153,22 +181,22 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
     if ( dataSize > MO_MSG_SIZE_LIMIT ) {
       
-      logger.warn( `Data size limit exceded by ${
+      log.warn( `Data size limit exceded by ${
         colors.yellow( ( dataSize - MO_MSG_SIZE_LIMIT ).toString() ) 
       } bytes` );
 
-      undo();
+      destroy();
 
     } else {
       
       file.write( data, err => {
         
         if ( err == null ) {
-          logger.debug( `Written ${
+          log.debug( `Written ${
             colors.yellow( data.length.toString() )
           } bytes to ${ colors.yellow(filePath) }` );
         } else {
-          logger.error( `Data write failed => ${ err.stack }` );
+          log.error( `Data write failed => ${ err.stack }` );
         }
 
       })
@@ -224,7 +252,7 @@ async function main() {
   }
 
   if ( !checkEnv() ) {
-    logger.error( `Please check your environment file` );
+    log.error( `Please check your environment file` );
     process.exit( 1 );
   }
 
@@ -232,12 +260,12 @@ async function main() {
   const moMsgDir = process.env.MO_MSG_DIR!;
 
   if ( process.env.MO_TCP_PORT === undefined ) {
-    logger.error( 'MO_TCP_PORT not defined' );
+    log.error( 'MO_TCP_PORT not defined' );
     process.exit(1);
   }
   
   if ( moMsgDir === undefined ) {
-    logger.error( 'MO_MSG_DIR not defined' );
+    log.error( 'MO_MSG_DIR not defined' );
     process.exit(1);
   }
 
@@ -247,13 +275,13 @@ async function main() {
       recursive: true 
     }).then( () => {
       
-      logger.success( `MO message dir=${
+      log.success( `MO message dir=${
         colors.yellow( moMsgDir )
       } created successfully` );
 
     }).catch( err => {
       
-      logger.error( `Could not create dir=${
+      log.error( `Could not create dir=${
         colors.yellow( moMsgDir )
       } => ${err.stack}` );
       
@@ -261,13 +289,13 @@ async function main() {
     })
 
   } else {
-    logger.info( `Using data dir=${ colors.yellow( moMsgDir ) }` )
+    log.info( `Using data dir=${ colors.yellow( moMsgDir ) }` )
   }
   
   server.on( 'connection', connectionHandler );
 
   server.listen( parseInt( process.env.MO_TCP_PORT ), () => {
-    logger.success( `Listening on port ${ 
+    log.success( `Listening on port ${ 
       colors.yellow( process.env.MO_TCP_PORT! ) 
     }` );
   })
