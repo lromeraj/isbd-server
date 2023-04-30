@@ -236,7 +236,7 @@ async function main() {
   teleBot.setup({
     token: process.env.TELE_BOT_TOKEN,
     secret: process.env.TELE_BOT_SECRET,
-  })
+  }, botErr )
 
   program.parse();
   const opts = program.opts();
