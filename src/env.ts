@@ -1,7 +1,9 @@
 import colors from "colors";
 import cryptoRandomString from "crypto-random-string";
 
-import logger from "./logger";
+import * as logger from "./logger";
+
+const log = logger.create( 'env' );
 
 export const DEFAULT_ENV: { 
   [key: string]: number | string 
@@ -19,7 +21,7 @@ export function checkEnv(): boolean {
   let valid = true
   for ( let key in DEFAULT_ENV ) {
     if ( process.env[ key ] === undefined ) {
-      logger.error( `$ENV{ ${ colors.bold(key) } } is not defined` );
+      log.error( `$ENV{ ${ colors.bold(key) } } is not defined` );
       valid = false;
     }
   }
