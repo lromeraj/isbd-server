@@ -46,43 +46,48 @@ function botSendMoMessage( msg: GSS.Message.MO ) {
   
   teleBot.getOwnerChatId( ( bot, idChat ) => {
     
-    const locationLink = `https://maps.google.com/?q=${
-        msg.location?.latitude.toFixed(7)
-      },${
-        msg.location?.longitude.toFixed(7)
-      }&ll=${
-        msg.location?.latitude.toFixed(7)
-      },${
-        msg.location?.longitude.toFixed(7)
-      }&z=5`
+    let mdMessage = '';
 
-    if ( msg.payload ) {
-
-      bot.sendMessage( idChat, `MO \#${ 
-        msg.header?.momsn 
-      } message received from ISU \`${
-        msg.header?.imei 
-      }\` at the [following location](${
-        locationLink
-      }):\n${
-        msg.payload?.payload.toString()
-      }`, { parse_mode: 'Markdown' } ).catch( botErr )
+    if ( msg.header ) {
       
-    } else {
-    
-      bot.sendMessage( idChat, `Session initiated by \`${
+      mdMessage += `- Session initiated by \`${
         msg.header?.imei 
-      }\` ${
-        
-        JSON.stringify({
-          momsn: msg.header?.momsn,
-          mtmsn: msg.header?.mtmsn,
-          status: msg.header?.status,
-        }, null, 2 )
-
-      }\n`, { parse_mode: 'Markdown' } ).catch( botErr );
+      }\` {\n${
+          `  cdr    : ${msg.header.cdr}\n`
+        + `  momsn  : ${msg.header.momsn}\n`
+        + `  mtmsn  : ${msg.header.mtmsn}\n`
+        + `  status : ${msg.header.status}\n`
+      }}\n`
 
     }
+
+    if ( msg.location ) {
+      
+      const location = GSS.Message.getDDLocation( msg.location );
+  
+      const locationLink = `https://maps.google.com/?q=${
+          location.latitude.toFixed(7)
+        },${
+          location.longitude.toFixed(7)
+        }&ll=${
+          location.latitude.toFixed(7)
+        },${
+          location.longitude.toFixed(7)
+        }&z=5`
+
+      mdMessage += `- See the ISU's [location in Google Maps](${locationLink})\n`
+
+    }
+
+    if ( msg.payload ) {
+      mdMessage += `- Received MO payload:\n ${ 
+        msg.payload?.payload.toString() 
+      }\n`
+    }
+
+    bot.sendMessage( idChat, mdMessage, { 
+      parse_mode: 'Markdown' 
+    }).catch( botErr );
 
   })
 
@@ -209,30 +214,6 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
 async function main() {
 
-
-
-  /*
-  const transport = new TCPTransport({
-    host: "localhost",
-    port: 10800,
-  })
-  
-  transport.sendMessage({
-    header: {
-      imei: "098789675437658",
-      flags: 0,
-      ucmid: Buffer.from([ 0x21, 0x22, 0x45, 0x56 ]),
-    },
-    payload: {
-      payload: Buffer.from( "This is a payload" ),
-    }
-  }, encodeMtMessage ).then( () => {
-    console.log( "OK" );
-  }).catch( err => {
-    console.log( "NOPE" );
-  })
-  */
-
   teleBot.setup({
     token: process.env.TELE_BOT_TOKEN,
     secret: process.env.TELE_BOT_SECRET,
@@ -256,7 +237,6 @@ async function main() {
     process.exit( 1 );
   }
 
-
   const moMsgDir = process.env.MO_MSG_DIR!;
 
   if ( process.env.MO_TCP_PORT === undefined ) {
@@ -272,7 +252,7 @@ async function main() {
   if ( !fs.pathExistsSync( moMsgDir ) ) {
 
     await fs.mkdir( moMsgDir, { 
-      recursive: true 
+      recursive: true
     }).then( () => {
       
       log.success( `MO message dir=${
@@ -289,7 +269,11 @@ async function main() {
     })
 
   } else {
-    log.info( `Using data dir=${ colors.yellow( moMsgDir ) }` )
+
+    log.info( `Using data dir=${ 
+      colors.yellow( moMsgDir ) 
+    }` )
+
   }
   
   server.on( 'connection', connectionHandler );
