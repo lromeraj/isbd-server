@@ -53,10 +53,12 @@ function botSendMoMessage( msg: GSS.Message.MO ) {
       mdMessage += `- Session initiated by \`${
         msg.header?.imei 
       }\` {\n${
-          `  cdr    : ${msg.header.cdr}\n`
+          '```'
+        + `  cdr    : ${msg.header.cdr}\n`
         + `  momsn  : ${msg.header.momsn}\n`
         + `  mtmsn  : ${msg.header.mtmsn}\n`
         + `  status : ${msg.header.status}\n`
+        + '```'
       }}\n`
 
     }
