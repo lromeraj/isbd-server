@@ -8,7 +8,7 @@ This server includes a tiny Telegram bot to notify you about incoming _MO_ (_Mob
 
 This repository depends on additional repositories which are included as _GIT_ submodules, so when cloning use the flag `--recursive` to avoid some additional steps:
 ``` bash
-git clone https://github.com/lromeraj/lua-zephyr-module.git --recursive
+git clone https://github.com/lromeraj/isbd-server.git --recursive
 ```
 
 If you have already cloned it without this flag, use the following command:
