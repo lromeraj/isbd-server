@@ -70,8 +70,10 @@ A simple Iridium SBD vendor server application
 Options:
   -V, --version            output the version number
   -v, --verbose            Verbosity level
-  --mo-tcp-port <number>   MO server port
-  --mo-ram-limit <number>  maximum RAM to be used
+  --mo-tcp-port <number>   MO TCP server port
+  --mo-tcp-host <string>   MO TCP server host
+  --mo-tcp-conn <number>   MO TCP maximum concurrent connections
+  --mo-tcp-queue <number>  MO TCP queue length
   --mo-msg-dir <string>    MO message directory
   -h, --help               display help for command
 ```
