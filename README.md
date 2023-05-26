@@ -46,11 +46,13 @@ A file named `.env` should have appeared in the root of the repository, here you
 # Environment variables
 | Variable | Description | Default |
 |----|----|----|
+| `MO_TCP_HOST` | Address where the server should accept incoming connections | `0.0.0.0` |
 | `MO_TCP_PORT` | Port where the server will listen for incoming TCP packets | `10801` |
+| `MO_TCP_CONN` | Maximum connections to be processed simultaneously | `64` |
+| `MO_TCP_QUEUE` | Maximum size of the TCP queue | `32` |
 | `MO_MSG_DIR` | Directory where the incoming _MO_ messages will be stored. Relative to the process working directory | `mo/` |
-| `MO_RAM_LIMIT` | Maximum RAM size (in bytes) to be used before using OS filesystem | `8192` |
-| `TELE_BOT_TOKEN` | Telegram bot access token | -- |
-| `TELE_BOT_SECRET` | Telegram bot secret used during handshake | -- |
+| `TELE_BOT_TOKEN` | Telegram bot access token | n/a |
+| `TELE_BOT_SECRET` | Telegram bot secret used during handshake | n/a |
 
 # Running the server
 
