@@ -3,6 +3,19 @@ This repository provides a server for testing Iridium SBD Direct IP messages. Th
 
 This server includes a tiny Telegram bot to notify you about incoming _MO_ (_Mobile Originated_) messages. See the [following instructions](https://github.com/lromeraj/tele-bot) to setup correctly your bot.
 
+
+# Cloning the repository
+
+This repository depends on additional repositories which are included as _GIT_ submodules, so when cloning use the flag `--recursive` to avoid some additional steps:
+``` bash
+git clone https://github.com/lromeraj/lua-zephyr-module.git --recursive
+```
+
+If you have already cloned it without this flag, use the following command:
+``` bash
+git submodule update --init
+```
+
 # Building the server
 
 This server depends on the `NodeJS` runtime environment (which you probably have already installed) but in case you don't, you can simply do:
@@ -29,12 +42,13 @@ npm i
 ```
 
 A file named `.env` should have appeared in the root of the repository, here you can specify your own configuration, like your bot token, secrets ... see the [environment variables section](#environment-variables).
-
+  
 # Environment variables
 | Variable | Description | Default |
 |----|----|----|
 | `MO_TCP_PORT` | Port where the server will listen for incoming TCP packets | `10801` |
 | `MO_MSG_DIR` | Directory where the incoming _MO_ messages will be stored. Relative to the process working directory | `mo/` |
+| `MO_RAM_LIMIT` | Maximum RAM size (in bytes) to be used before using OS filesystem | `8192` |
 | `TELE_BOT_TOKEN` | Telegram bot access token | -- |
 | `TELE_BOT_SECRET` | Telegram bot secret used during handshake | -- |
 
@@ -52,11 +66,12 @@ Usage: server [options]
 A simple Iridium SBD vendor server application
 
 Options:
-  -V, --version           output the version number
-  -v, --verbose           Verbosity level
-  --mo-tcp-port <number>  MO server port
-  --mo-msg-dir <string>   MO message directory
-  -h, --help              display help for command
+  -V, --version            output the version number
+  -v, --verbose            Verbosity level
+  --mo-tcp-port <number>   MO server port
+  --mo-ram-limit <number>  maximum RAM to be used
+  --mo-msg-dir <string>    MO message directory
+  -h, --help               display help for command
 ```
 
 To execute the server using a background process manager use:

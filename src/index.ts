@@ -16,17 +16,22 @@ const log = logger.create( 'main' );
 import { GSS } from "isbd-emu"
 import { checkEnv } from "./env";
 import { Option, program } from "commander";
-import { MO_MSG_SIZE_LIMIT } from "./constants";
+import { DEFAULT_MO_TCP_PORT, DEFAULT_MO_MSG_SIZE_LIMIT, DEFAULT_MO_RAM_LIMIT, DEFAULT_MO_MSG_DIR } from "./constants";
 import { botErr } from "./bot";
+import stream from "stream";
 
 program
-  .version( '0.1.2' )
+  .version( '0.2.3' )
   .description( 'A simple Iridium SBD vendor server application' )
   .option( '-v, --verbose', 'Verbosity level', 
     (_, prev) => prev + 1, 1 )
 
 program.addOption(
   new Option( '--mo-tcp-port <number>', 'MO server port' )
+    .argParser( v => parseInt( v ) ) )
+
+program.addOption(
+  new Option( '--mo-ram-limit <number>', 'maximum RAM to be used' )
     .argParser( v => parseInt( v ) ) )
 
 program.addOption(
@@ -95,9 +100,21 @@ function botSendMoMessage( msg: GSS.Message.MO ) {
 
 }
 
-function startDecodingTask( filePath: string ): Promise<void> {
+function startDecodingTask( 
+  messageKey: string, type: 'ram' | 'fs' 
+): Promise<void> {
 
-  return fs.readFile( filePath ).then( buffer => {
+  const getRawMsg: () => Promise<Buffer> = () => {
+    if ( type === 'ram' ) {
+      return Promise.resolve( RAM_MESSAGES.messages[ messageKey ] );
+    } else if ( type === 'fs' ) {
+      return fs.readFile( messageKey );
+    } else {
+      return Promise.reject();
+    }
+  }
+
+  return getRawMsg().then( buffer => {
 
     const decodedMsg = GSS.Decoder.decodeMoMessage( buffer );
     
@@ -111,10 +128,10 @@ function startDecodingTask( filePath: string ): Promise<void> {
             .toString().padStart( 5, '0' )
         }.sbd` )
       
-      fs.rename( filePath, newFilePath );
+      fs.rename( messageKey, newFilePath );
 
       log.success( `File ${
-        colors.yellow( filePath )
+        colors.yellow( messageKey )
       } successfully decoded => ${ colors.green( newFilePath ) }` );
 
       botSendMoMessage( decodedMsg );
@@ -122,10 +139,14 @@ function startDecodingTask( filePath: string ): Promise<void> {
     } else {
 
       log.error( `Decode failed for ${
-        colors.red( filePath )
-      }, invalid binary format` );      
-      
-      fs.unlinkSync( filePath );
+        colors.red( messageKey )
+      }, invalid binary format` );
+
+      if ( type === 'fs' ) {
+        fs.unlinkSync( messageKey );
+      } else if ( type === 'ram' ) {
+        freeRamMessage( messageKey );
+      }
 
     }
 
@@ -133,53 +154,103 @@ function startDecodingTask( filePath: string ): Promise<void> {
 
 }
 
-const connectionHandler: (socket: net.Socket) => void = conn => {
-  
-  const SOCKET_TIMEOUT = 1000;
-  const fileName = `RAW_${ getIID() }.bin`;
-  const filePath = path.join( process.env.MO_MSG_DIR!, fileName );
-  const file = fs.createWriteStream( filePath );
+const SERVER_OPTIONS: {
+  mo: {
+    ramLimit: number,
+    tcpPort: number,
+    msgDir: string,
+  },
+  bot: {
+    token: string,
+    secret: string,
+  }
+} = {
+  mo: {
+    msgDir: DEFAULT_MO_MSG_DIR,
+    tcpPort: DEFAULT_MO_TCP_PORT,
+    ramLimit: DEFAULT_MO_RAM_LIMIT,
+  },
+  bot: {
+    token: '',
+    secret: '',
+  }
+}
 
-  conn.setTimeout( SOCKET_TIMEOUT );  
+const RAM_MESSAGES: {
+  usedSpace: number;
+  messages: {[key: string]: Buffer };
+} = { messages: {}, usedSpace: 0 };
+
+
+const allocRamMessage = ( key: string, buffer: Buffer ) => {
+  RAM_MESSAGES.messages[ key ] = buffer;
+  RAM_MESSAGES.usedSpace += buffer.length;
+}
+
+const freeRamMessage = ( key: string ) => {
+
+  RAM_MESSAGES.usedSpace = 
+    RAM_MESSAGES.usedSpace - RAM_MESSAGES.messages[ key ].length;
+
+  delete RAM_MESSAGES.messages[ key ];
+}
+
+const useRAM: (opts: {
+  destroyer: () => void,
+  readStream: stream.Readable,
+}) => void = opts => {
+
+  const chunks: Buffer[] = []
+
+  opts.readStream.on( 'data', chunk => {
+    chunks.push( chunk );
+  })
+
+  opts.readStream.on( 'close', () => {
+    const messageKey = `RAM_${getIID()}`
+
+    allocRamMessage( messageKey, Buffer.concat( chunks ) );
+    startDecodingTask( messageKey, 'ram' );
+  })
+
+}
+
+const useFS: (opts: {
+  destroyer: () => void,
+  readStream: stream.Readable,
+}) => void = opts => {
+
+  const fileName = `FS_${ getIID() }.bin`;
+  const filePath = path.join( process.env.MO_MSG_DIR!, fileName );
+  const writeStream = fs.createWriteStream( filePath );
 
   const destroy = () => {
     
-    conn.destroy();
-    conn.removeAllListeners();
-    
-    file.destroy();
-    file.removeAllListeners();
+    writeStream.destroy();
+    writeStream.removeAllListeners();
 
     fs.unlink( filePath );
+
+    opts.destroyer();
   }
 
-  file.on( 'error', err => {
+  writeStream.on( 'error', err => {
     log.error( `Write error ${ 
       colors.red( filePath ) 
     } => ${ err.message }` );
     destroy();
   })
 
-  conn.on( 'error', err => {
-    log.error( `Connection error => ${ err.stack }` )
-    destroy();
-  })
-
-  conn.on( 'timeout', () => {
-    log.error( `Connection timeout` );
-    destroy();
-  })
-
-  conn.on( 'close', () => {
+  opts.readStream.on( 'close', () => {
     
-    file.close( err => {
+    writeStream.close( err => {
       
       if ( err ) {
         log.error( `Could not close stream for ${
           colors.red( filePath )
         } => ${ err.message }` );
       } else {
-        startDecodingTask( filePath ).catch( err => {
+        startDecodingTask( filePath, 'fs' ).catch( err => {
           log.error( `Decode task failed => ${ err.stack }` );
         });
       }
@@ -188,46 +259,113 @@ const connectionHandler: (socket: net.Socket) => void = conn => {
 
   })
 
-  let dataSize = 0;
+  opts.readStream.on( 'data', data => {
 
-  conn.on( 'data', data => {
-
-    dataSize += data.length;
-
-    if ( dataSize > MO_MSG_SIZE_LIMIT ) {
-      
-      log.warn( `Data size limit exceded by ${
-        colors.yellow( ( dataSize - MO_MSG_SIZE_LIMIT ).toString() ) 
-      } bytes` );
-
-      destroy();
-
-    } else {
-      
-      file.write( data, err => {
+    writeStream.write( data, err => {
         
-        if ( err == null ) {
-          log.debug( `Written ${
-            colors.yellow( data.length.toString() )
-          } bytes to ${ colors.yellow(filePath) }` );
-        } else {
-          log.error( `Data write failed => ${ err.stack }` );
-        }
+      if ( err == null ) {
+        log.debug( `Written ${
+          colors.yellow( data.length.toString() )
+        } bytes to ${ colors.yellow( filePath ) }` );
+      } else {
+        log.error( `Data write failed => ${ err.stack }` );
+      }
 
-      })
-
-    }
+    })
 
   })
 
 }
 
+const socketHandler: (socket: net.Socket) => void = socket => {
+  
+  const RELATIVE_SOCKET_TIMEOUT = 1000;
+  const ABSOLUTE_SOCKET_TIMEOUT = 5000;
+
+  let absoluteTimer = setTimeout(() => {})
+  
+  // this stream is used to read data
+  const readStream = new stream.Readable();
+  
+  let dataSize = 0;
+
+  const writeStream = new stream.Writable({
+    write( chunk, encoding, callback ) {
+      dataSize += chunk.length;
+      if ( dataSize > DEFAULT_MO_MSG_SIZE_LIMIT ) {
+        callback( new Error( `MO message size limit exceded by ${ 
+          dataSize - DEFAULT_MO_MSG_SIZE_LIMIT 
+        }` ))
+      } else {
+        readStream.push( chunk );
+        callback();
+      }
+    },
+  }).on( 'close', () => {
+    readStream.push( null );
+  })
+
+  const destroy = () => {
+    socket.destroy();
+    socket.removeAllListeners();    
+  }
+
+  if ( RAM_MESSAGES.usedSpace > 
+      SERVER_OPTIONS.mo.ramLimit - DEFAULT_MO_MSG_SIZE_LIMIT ) {
+    
+    useFS({
+      destroyer: destroy,
+      readStream: readStream,
+    });
+
+  } else {
+    
+    useRAM({
+      destroyer: destroy,
+      readStream: readStream,
+    });
+
+  }
+
+  const onTimeout = () => {
+    log.error( `Connection timed out` );
+    destroy();
+  }
+
+  absoluteTimer = setTimeout( 
+    onTimeout, ABSOLUTE_SOCKET_TIMEOUT );
+  
+  socket.on( 'close', () => {
+    clearTimeout( absoluteTimer );
+  })
+
+  socket.on( 'timeout', onTimeout );
+
+  socket.on( 'error', err => {
+    log.error( `Connection error => ${ err.stack }` )
+    destroy();
+  })
+
+  socket.pipe( writeStream );
+
+}
+
 async function main() {
 
-  teleBot.setup({
-    token: process.env.TELE_BOT_TOKEN,
-    secret: process.env.TELE_BOT_SECRET,
-  }, botErr )
+  SERVER_OPTIONS.bot.secret = 
+    process.env.TELE_BOT_SECRET || '';
+
+  SERVER_OPTIONS.bot.token = 
+    process.env.TELE_BOT_TOKEN || '';
+  
+  SERVER_OPTIONS.mo.msgDir = 
+    process.env.MO_MSG_DIR || DEFAULT_MO_MSG_DIR;
+  
+  SERVER_OPTIONS.mo.tcpPort = 
+    parseInt( process.env.MO_MSG_DIR || '' ) || DEFAULT_MO_TCP_PORT;
+  
+  SERVER_OPTIONS.mo.ramLimit = 
+    parseInt( process.env.MO_RAM_LIMIT || '' ) || DEFAULT_MO_RAM_LIMIT;
 
   program.parse();
   const opts = program.opts();
@@ -235,29 +373,18 @@ async function main() {
   logger.setLevel( opts.verbose );
   
   if ( opts.moMsgDir ) {
-    process.env.MO_MSG_DIR = opts.moMsgDir;
+    SERVER_OPTIONS.mo.msgDir = opts.moMsgDir;
   }
 
   if ( opts.moTcpPort ) {
-    process.env.MO_TCP_PORT = opts.moTcpPort;
+    SERVER_OPTIONS.mo.tcpPort = opts.moTcpPort;
   }
 
-  if ( !checkEnv() ) {
-    log.error( `Please check your environment file` );
-    process.exit( 1 );
-  }
-
-  const moMsgDir = process.env.MO_MSG_DIR!;
-
-  if ( process.env.MO_TCP_PORT === undefined ) {
-    log.error( 'MO_TCP_PORT not defined' );
-    process.exit(1);
+  if ( opts.moRamLimit ) {
+    SERVER_OPTIONS.mo.ramLimit = opts.ramLimit;
   }
   
-  if ( moMsgDir === undefined ) {
-    log.error( 'MO_MSG_DIR not defined' );
-    process.exit(1);
-  }
+  const moMsgDir = SERVER_OPTIONS.mo.msgDir;
 
   if ( !fs.pathExistsSync( moMsgDir ) ) {
 
@@ -286,14 +413,19 @@ async function main() {
 
   }
   
-  server.on( 'connection', connectionHandler );
+  server.on( 'connection', socketHandler );
 
-  server.listen( parseInt( process.env.MO_TCP_PORT ), () => {
+  server.listen( SERVER_OPTIONS.mo.tcpPort, () => {
     log.success( `Listening on port ${ 
-      colors.yellow( process.env.MO_TCP_PORT! ) 
+      colors.yellow( SERVER_OPTIONS.mo.tcpPort + '' ) 
     }` );
   })
 
+  teleBot.setup({
+    token: SERVER_OPTIONS.bot.token,
+    secret: SERVER_OPTIONS.bot.secret,
+  }, botErr );
+  
   teleBot.getOwnerChatId( ( bot, idChat ) => {
     bot.sendMessage( idChat, 'Iridium SBD server ready' ).catch( botErr );
   })
