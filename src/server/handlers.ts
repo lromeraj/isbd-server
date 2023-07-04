@@ -51,7 +51,7 @@ export function moSocketHandler(
 
   }).on( 'close', () => {
     readStream.push( null );
-  }).on( 'error', (err) => {
+  }).on( 'error', ( err ) => {
     log.error( `Write stream failed => ${ err.message }` )
   })
 
