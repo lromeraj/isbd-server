@@ -36,8 +36,8 @@ export function moSocketHandler(
   let dataSize = 0;
 
   const writeStream = new stream.Writable({
-    
-    write( chunk, encoding, callback ) {
+
+    write: ( chunk, encoding, callback ) => {
       dataSize += chunk.length;
       if ( dataSize > DEFAULT_MO_MSG_SIZE_LIMIT ) {
         callback( new Error( `MO message size limit exceded by ${ 
@@ -51,6 +51,8 @@ export function moSocketHandler(
 
   }).on( 'close', () => {
     readStream.push( null );
+  }).on( 'error', (err) => {
+    log.error( `Write stream failed => ${ err.message }` )
   })
 
   const destroy = () => {
