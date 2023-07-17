@@ -1,7 +1,20 @@
 # Iridium SBD Direct IP Server
-This repository provides a server for testing Iridium SBD Direct IP messages. This server can be used with your official Iridium Direct IP server provider and also with the following [Iridium SBD emulator](https://glab.lromeraj.net/ucm/miot/tfm/iridium-sbd-emulator).
+This repository provides a server for testing Iridium SBD Direct IP messages. This server can be used with your official Iridium Direct IP server provider and also with the following [Iridium SBD emulator](https://github.com/lromeraj/isbd-emu).
 
-This server implements a tiny Telegram bot to notify you about incoming _MO_ (_Mobile Originated_) messages. See the [following instructions](https://glab.lromeraj.net/npm/tele-bot) to setup correctly your bot.
+This server includes a tiny Telegram bot to notify you about incoming _MO_ (_Mobile Originated_) messages. See the [following instructions](https://github.com/lromeraj/tele-bot) to setup correctly your bot.
+
+
+# Cloning the repository
+
+This repository depends on additional repositories which are included as _GIT_ submodules, so when cloning use the flag `--recursive` to avoid some additional steps:
+``` bash
+git clone https://github.com/lromeraj/isbd-server.git --recursive
+```
+
+If you have already cloned it without this flag, use the following command:
+``` bash
+git submodule update --init
+```
 
 # Building the server
 
@@ -29,14 +42,17 @@ npm i
 ```
 
 A file named `.env` should have appeared in the root of the repository, here you can specify your own configuration, like your bot token, secrets ... see the [environment variables section](#environment-variables).
-
+  
 # Environment variables
 | Variable | Description | Default |
 |----|----|----|
+| `MO_TCP_HOST` | Address where the server should accept incoming connections | `0.0.0.0` |
 | `MO_TCP_PORT` | Port where the server will listen for incoming TCP packets | `10801` |
+| `MO_TCP_CONN` | Maximum connections to be processed simultaneously | `64` |
+| `MO_TCP_QUEUE` | Maximum size of the TCP queue | `32` |
 | `MO_MSG_DIR` | Directory where the incoming _MO_ messages will be stored. Relative to the process working directory | `mo/` |
-| `TELE_BOT_TOKEN` | Telegram bot access token | -- |
-| `TELE_BOT_SECRET` | Telegram bot secret used during handshake | -- |
+| `TELE_BOT_TOKEN` | Telegram bot access token | n/a |
+| `TELE_BOT_SECRET` | Telegram bot secret used during handshake | n/a |
 
 # Running the server
 
@@ -52,11 +68,14 @@ Usage: server [options]
 A simple Iridium SBD vendor server application
 
 Options:
-  -V, --version           output the version number
-  -v, --verbose           Verbosity level
-  --mo-tcp-port <number>  MO server port
-  --mo-msg-dir <string>   MO message directory
-  -h, --help              display help for command
+  -V, --version            output the version number
+  -v, --verbose            Verbosity level
+  --mo-tcp-port <number>   MO TCP server port
+  --mo-tcp-host <string>   MO TCP server host
+  --mo-tcp-conn <number>   MO TCP maximum concurrent connections
+  --mo-tcp-queue <number>  MO TCP queue length
+  --mo-msg-dir <string>    MO message directory
+  -h, --help               display help for command
 ```
 
 To execute the server using a background process manager use:
@@ -106,51 +125,8 @@ backend iridium-sbd-server
   server isbd localhost:10801
 ```
 
-This checks if the address which requested TCP handshake is whitelisted. In this case the whitelisted IPv4 corresponds to the Iridium Direct IP server.
+This checks if the address which requested TCP handshake is whitelisted. In this case the whitelisted IPv4 corresponds to the official Iridium SBD Direct IP server.
 
 # Tools
 
-> **IMPORTANT**: the following tools have been deprecated after including the ISBD emulator as a submodule which already includes all of this tools natively.
- 
-This server comes with some scripts which will simplify some tasks like decoding _MO_ messages. To execute the different scripts you can use the `sbd-env.sh` file to load server related environment:
-``` bash
-source sbd-env.sh
-```
-
-After this you can execute scripts by typing:
-``` bash
-sbd <script_name>
-```
-
-## SBD MO Message decoder
-
-When the server receives incoming _MO_ messages from Iridium, it stores the binary data inside the message folder `MO_MSG_DIR`. You can use a script named `decode` in order to easily decode those binary files:
-``` bash
-sbd decode <file_path>
-```
-
-Here is an example of a successful decoding:
-``` js
-{
-  length: 52,
-  rev: 1,
-  header: {
-    id: 1,
-    length: 28,
-    cdr: 0,
-    imei: '527695889002193',
-    status: 0,
-    momsn: 4,
-    mtmsn: 0,
-    time: Moment<2006-01-11T04:18:27+01:00>
-  },
-  location: {
-    id: 3,
-    length: 11,
-    latitude: 67.15716666666667,
-    longitude: -31.029066666666665,
-    cepRadius: 323
-  },
-  payload: { id: 2, length: 4, payload: <Buffer 4d 49 6f 54> }
-}
-```
+> **IMPORTANT**: the tools have been removed after including the Iridium SBD emulator as a submodule which already includes all of this tools natively, please see the [official Iridium SBD emulator repository](https://github.com/lromeraj/isbd-emu).

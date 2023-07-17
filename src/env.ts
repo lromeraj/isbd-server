@@ -1,29 +1,26 @@
-import colors from "colors";
-import cryptoRandomString from "crypto-random-string";
 
-import * as logger from "./logger";
-
-const log = logger.create( 'env' );
-
-export const DEFAULT_ENV: { 
-  [key: string]: number | string 
-} = {
-  'MO_TCP_PORT': 10801,
-  'MO_MSG_DIR': 'mo/',
-  'TELE_BOT_TOKEN': '',
-  'TELE_BOT_SECRET': cryptoRandomString({
-    length: 8,
-    type: 'alphanumeric'
-  }),
-};
-
-export function checkEnv(): boolean {
-  let valid = true
-  for ( let key in DEFAULT_ENV ) {
-    if ( process.env[ key ] === undefined ) {
-      log.error( `$ENV{ ${ colors.bold(key) } } is not defined` );
-      valid = false;
-    }
+export const SERVER_OPTIONS: {
+  mo: {
+    tcpConn: number,
+    tcpPort: number,
+    tcpQueue: number,
+    tcpHost: string,
+    msgDir: string,
+  },
+  bot: {
+    token: string,
+    secret: string,
   }
-  return valid;
+} = {
+  mo: {
+    msgDir: DEFAULT_MO_MSG_DIR,
+    tcpPort: DEFAULT_MO_TCP_PORT,
+    tcpQueue: DEFAULT_MO_TCP_QUEUE,
+    tcpHost: DEFAULT_MO_TCP_HOST,
+    tcpConn: DEFAULT_MO_TCP_CONN,
+  },
+  bot: {
+    token: '',
+    secret: '',
+  }
 }
