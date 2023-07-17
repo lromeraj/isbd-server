@@ -7,6 +7,7 @@ import * as logger from "../src/logger";
 const log = logger.create( 'scripts/env' );
 
 async function main() {
+
   const envPath = path.join( __dirname, '../../.env' );
   
   if ( ! fs.existsSync( envPath ) ) {
@@ -16,9 +17,7 @@ async function main() {
     
     let envContent = '';
     for ( let key in DEFAULT_ENV ) {
-      envContent += `${
-        key.padEnd( maxKeyLen, ' ')
-      } = ${DEFAULT_ENV[key]}\n`
+      envContent += `${ key }=${DEFAULT_ENV[key]}\n`
     }
     fs.writeFileSync( envPath, envContent, { 
       mode: fs.constants.S_IRUSR | fs.constants.S_IWUSR 

@@ -2,18 +2,19 @@ import colors from "colors";
 import cryptoRandomString from "crypto-random-string";
 
 import * as logger from "./logger";
-import { DEFAULT_MO_MSG_DIR, DEFAULT_MO_TCP_CONN, DEFAULT_MO_TCP_HOST, DEFAULT_MO_TCP_PORT, DEFAULT_MO_TCP_QUEUE } from "./constants";
+import { DEFAULT_DATA_DIR, DEFAULT_MO_MSG_DIR, DEFAULT_MO_TCP_CONN, DEFAULT_MO_TCP_HOST, DEFAULT_MO_TCP_PORT, DEFAULT_MO_TCP_QUEUE } from "./constants";
+import path from "path";
 
 const log = logger.create( 'env' );
 
 export const DEFAULT_ENV: { 
   [key: string]: number | string 
 } = {
+  'DATA_DIR': DEFAULT_DATA_DIR,
   'MO_TCP_HOST': DEFAULT_MO_TCP_HOST,
   'MO_TCP_PORT': DEFAULT_MO_TCP_PORT,
   'MO_TCP_CONN': DEFAULT_MO_TCP_CONN,
   'MO_TCP_QUEUE': DEFAULT_MO_TCP_QUEUE,
-  'MO_MSG_DIR': DEFAULT_MO_MSG_DIR,
   'TELE_BOT_TOKEN': '',
   'TELE_BOT_SECRET': cryptoRandomString({
     length: 8,
@@ -33,20 +34,22 @@ export function checkEnv(): boolean {
 }
 
 export const SERVER_OPTIONS: {
+  dataDir: string;
   mo: {
-    tcpConn: number,
-    tcpPort: number,
-    tcpQueue: number,
-    tcpHost: string,
-    msgDir: string,
-  },
+    tcpConn: number;
+    tcpPort: number;
+    tcpQueue: number;
+    tcpHost: string;
+    msgDir: string;
+  };
   bot: {
-    token: string,
-    secret: string,
-  }
+    token: string;
+    secret: string;
+  };
 } = {
+  dataDir: DEFAULT_DATA_DIR,
   mo: {
-    msgDir: DEFAULT_MO_MSG_DIR,
+    msgDir: path.join( DEFAULT_DATA_DIR, DEFAULT_MO_MSG_DIR ),
     tcpPort: DEFAULT_MO_TCP_PORT,
     tcpQueue: DEFAULT_MO_TCP_QUEUE,
     tcpHost: DEFAULT_MO_TCP_HOST,

@@ -7,6 +7,7 @@ import * as logger from "../logger";
 import { GSS } from "isbd-emu"
 import { botSendMoMessage } from "../bot";
 import { SERVER_OPTIONS } from "../env";
+import { DEFAULT_MO_MSG_DIR } from "../constants";
 
 const log = logger.create( 'server/tools' );
 
@@ -18,7 +19,9 @@ export function getIID() {
   return _context.iid++; 
 }
 
-export async function checkMoMsgDir( moMsgDir: string ) {
+export async function checkMoMsgDir() {
+
+  const moMsgDir = SERVER_OPTIONS.mo.msgDir;
 
   if ( !fs.pathExistsSync( moMsgDir ) ) {
 
@@ -32,17 +35,17 @@ export async function checkMoMsgDir( moMsgDir: string ) {
 
     }).catch( err => {
       
-      log.error( `Could not create dir ${
+      log.error( `Could not create MO dir ${
         colors.yellow( moMsgDir )
       } => ${err.stack}` );
-      
+  
       process.exit(1);
 
     })
 
   } else {
 
-    log.info( `Using data dir ${ 
+    log.info( `Using MO dir ${ 
       colors.yellow( moMsgDir ) 
     }` )
   }

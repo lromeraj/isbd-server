@@ -1,8 +1,8 @@
-[submodule "tele-bot"]
+[submodule "modules/tele-bot"]
 	path = modules/tele-bot
-	branch = main
 	url = https://github.com/lromeraj/tele-bot.git
+	branch = main
 [submodule "modules/isbd-emu"]
 	path = modules/isbd-emu
-	branch = main
 	url = https://github.com/lromeraj/isbd-emu.git
+	branch = main
