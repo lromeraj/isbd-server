@@ -1,16 +1,12 @@
 {
-  "name": "isbd-direct-ip-server",
+  "name": "isbd-server",
   "version": "0.0.1",
   "description": "A test server for Iridium SBD Direct IP",
   "main": "index.js",
   "scripts": {
-    "env": "cp src/.env .",
     "test": "nodemon --config nodemon.json",
     "build": "rm -rf build/ && tsc",
-    "start": "pm2 start ecosystem.config.js",
-    "stop": "pm2 stop ecosystem.config.js",
-    "prepare": "npm run build && node build/scripts/gen-env.js",
-    "deploy": "pm2 startOrRestart ecosystem.config.js && pm2 save"
+    "prepare": "npm run build && node build/scripts/gen-env.js"
   },
   "author": "@lromeraj",
   "license": "ISC",

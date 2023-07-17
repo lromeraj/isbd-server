@@ -10,4 +10,4 @@ COPY scripts/ scripts/
 
 RUN npm install
 
-CMD node server.js
+CMD node build/src/index.js
