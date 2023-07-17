@@ -24,9 +24,7 @@ deploy:
   script:
     - cp $ENV_FILE .env && chmod 600 .env
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - docker-compose -d docker/Dockerfile stop
-    - docker-compose pull
-    - docker-compose up -d
+    - docker-compose pull && docker-compose up -d
   only:
     - main
   environment: 
