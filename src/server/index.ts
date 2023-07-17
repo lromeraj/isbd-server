@@ -15,7 +15,7 @@ const server = net.createServer();
 export async function setupMoServer() {
 
   // check mobile originated message directory
-  return checkMoMsgDir( SERVER_OPTIONS.mo.msgDir ).then( () => {
+  return checkMoMsgDir().then( () => {
 
     server.on( 'connection', moSocketHandler );
 

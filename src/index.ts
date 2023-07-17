@@ -4,13 +4,12 @@ dotenv.config();
 import * as logger from "./logger";
 import * as teleBot from "tele-bot";
 
-const log = logger.create( 'main' );
-
 import { SERVER_OPTIONS, checkEnv } from "./env";
 import { Option, program } from "commander";
-import { DEFAULT_MO_TCP_PORT, DEFAULT_MO_MSG_SIZE_LIMIT, DEFAULT_MO_TCP_CONN, DEFAULT_MO_MSG_DIR, DEFAULT_MO_TCP_HOST, DEFAULT_MO_TCP_QUEUE } from "./constants";
+import { DEFAULT_MO_TCP_PORT, DEFAULT_MO_MSG_SIZE_LIMIT, DEFAULT_MO_TCP_CONN, DEFAULT_MO_MSG_DIR, DEFAULT_MO_TCP_HOST, DEFAULT_MO_TCP_QUEUE, DEFAULT_DATA_DIR } from "./constants";
 import { botErr, botSendMoMessage } from "./bot";
 import { setupMoServer } from "./server";
+import path from "path";
 
 const log = logger.create( 'main' );
 
@@ -19,6 +18,10 @@ program
   .description( 'A simple Iridium SBD vendor server application' )
   .option( '-v, --verbose', 'Verbosity level', 
     (_, prev) => prev + 1, 1 )
+
+
+program.addOption(
+  new Option( '--data-dir <string>', 'Data directory' ) )
 
 program.addOption(
   new Option( '--mo-tcp-port <number>', 'MO TCP server port' )
@@ -34,10 +37,6 @@ program.addOption(
 program.addOption(
   new Option( '--mo-tcp-queue <number>', 'MO TCP queue length' )
     .argParser( v => parseInt( v ) ) )
-    
-program.addOption(
-  new Option( '--mo-msg-dir <string>', 'MO message directory' ) )
-
 
 async function main() {
 
@@ -48,8 +47,8 @@ async function main() {
   SERVER_OPTIONS.bot.token = 
     process.env.TELE_BOT_TOKEN || '';
   
-  SERVER_OPTIONS.mo.msgDir = 
-    process.env.MO_MSG_DIR || DEFAULT_MO_MSG_DIR;
+  SERVER_OPTIONS.dataDir = 
+    process.env.DATA_DIR || DEFAULT_DATA_DIR;
 
   SERVER_OPTIONS.mo.tcpQueue = 
     parseInt( process.env.MO_TCP_QUEUE || DEFAULT_MO_TCP_QUEUE+'' );
@@ -68,8 +67,9 @@ async function main() {
 
   logger.setLevel( opts.verbose );
   
-  if ( opts.moMsgDir ) {
-    SERVER_OPTIONS.mo.msgDir = opts.moMsgDir;
+  if ( opts.dataDir ) {
+    SERVER_OPTIONS.dataDir = opts.dataDir;
+    SERVER_OPTIONS.mo.msgDir = path.join( opts.dataDir, DEFAULT_MO_MSG_DIR ); 
   }
 
   if ( opts.moTcpPort ) {
@@ -96,6 +96,7 @@ async function main() {
   teleBot.setup({
     token: SERVER_OPTIONS.bot.token,
     secret: SERVER_OPTIONS.bot.secret,
+    storageDir: path.join( SERVER_OPTIONS.dataDir, 'tele-bot' ),
   }, botErr );
   
   teleBot.getOwnerChatId( ( bot, idChat ) => {

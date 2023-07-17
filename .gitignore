@@ -1,5 +1,4 @@
 .env
 build/
 node_modules/
-mo/
-tele-bot-storage/
+data/
