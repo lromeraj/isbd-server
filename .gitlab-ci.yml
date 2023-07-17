@@ -1,0 +1,27 @@
+variables:
+  GIT_CLEAN_FLAGS: none # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4154
+  GIT_SUBMODULE_STRATEGY: recursive # https://docs.gitlab.com/ee/ci/git_submodules.html#use-git-submodules-in-cicd-jobs
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/isbd-server # https://stackoverflow.com/questions/64089704/gitlab-runner-change-builds-dir
+
+build:
+  script:
+    - npm i
+  tags:
+    - isbd-server
+  only:
+    - dev
+
+deploy:
+  stage: build
+  script:
+    - npm i
+    - cp $ENV_FILE .env
+    - chmod 600 .env
+    - npm run deploy
+  environment:
+    name: production
+  tags:
+    - isbd-server
+  only:
+    - main
+
