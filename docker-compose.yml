@@ -10,6 +10,8 @@ services:
     dns:
       - "8.8.8.8"
       - "8.8.4.4"
+    ports:
+      - ${MO_TCP_PORT}:${MO_TCP_PORT}
     restart: always
 
 volumes:
