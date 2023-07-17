@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  isbd-server:
+    container_name: isbd-server
+    image: registry.glab.lromeraj.net/ucm/miot/tfm/iridium-sbd-server:latest
+    volumes: 
+      - data:/isbd-server/data
+      - .env:/isbd-server/.env
+    dns:
+      - "8.8.8.8"
+      - "8.8.4.4"
+    restart: always
+
+volumes:
+  data:
