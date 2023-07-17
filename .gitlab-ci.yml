@@ -19,17 +19,6 @@ build:
   tags:
     - docker
 
-.deploy_job_template: &deploy_template  # Hidden key that defines an anchor named 'job_definition'
-  stage: deploy
-  script:
-    - cp $CONF_FILE_PATH config.yml && chmod 600 config.yml
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - docker-compose stop
-    - docker-compose pull
-    - docker-compose up -d
-  only:
-    - main
-
 deploy:
   stage: deploy
   script:
