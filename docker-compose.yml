@@ -3,7 +3,7 @@ version: "3"
 services:
   isbd-server:
     container_name: isbd-server
-    image: registry.glab.lromeraj.net/ucm/miot/tfm/iridium-sbd-server:latest
+    image: registry.glab.lromeraj.net/ucm/miot/tfm/isbd-server:latest
     volumes: 
       - data:/isbd-server/data
       - .env:/isbd-server/.env
