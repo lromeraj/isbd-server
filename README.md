@@ -3,7 +3,6 @@ This repository provides a server for testing Iridium SBD Direct IP messages. Th
 
 This server includes a tiny Telegram bot to notify you about incoming _MO_ (_Mobile Originated_) messages. See the [following instructions](https://github.com/lromeraj/tele-bot) to setup correctly your bot.
 
-
 # Cloning the repository
 
 This repository depends on additional repositories which are included as _GIT_ submodules, so when cloning use the flag `--recursive` to avoid some additional steps:
@@ -18,30 +17,29 @@ git submodule update --init
 
 # Building the server
 
-This server depends on the `NodeJS` runtime environment (which you probably have already installed) but in case you don't, you can simply do:
+> **NOTE**: before building this server, ensure you have the Node JS environment installed (which you likely already have). In case it's not installed, you can [follow these instructions](https://github.com/nodesource/distributions#installation-instructions) for Debian-based systems. For other systems, please search on Google for instructions on how to install Node JS on your specific platform.
 
-> **NOTE**: the following instructions assume you are working from Ubuntu. If you need specific instructions for your OS, search in Google how to install `Node JS v14.x`.
-
+If `node` and `npm` are accessible from your path, now you can install all required dependencies:
 ``` bash
-curl -sL https://deb.nodesource.com/setup_14.x -o nodesource_setup.sh
+npm install
 ```
 
-Check it's contents if you don't feel comfortable with a direct "blind" install:
+After install succeeds, build the server with the following command:
 ``` bash
-nano nodesource_setup.sh
+npm run build
 ```
 
-Finally install it:
+Under the `exe/` directory all symlinks should be pointing to a valid JavaScript file inside the `build/` directory. After building, you have to create the default environment file:
 ``` bash
-sudo bash nodesource_setup.sh
+npm run env
 ```
 
-If `node` and `npm` are accesible from your path, you are ready to build the server:
-``` bash
-npm i
-```
+A file named `.env` should have appeared in the root of the repository, here you can specify your own configuration, like your bot token, secrets ... see the [environment variables section](#environment-variables). Also, 
 
-A file named `.env` should have appeared in the root of the repository, here you can specify your own configuration, like your bot token, secrets ... see the [environment variables section](#environment-variables).
+If you want to run the server use `node` to start it, like:
+``` bash
+node exe/server.js
+```
   
 # Environment variables
 | Variable | Description | Default |
@@ -58,7 +56,7 @@ A file named `.env` should have appeared in the root of the repository, here you
 
 After building the server, you should see a valid symlink in the root of the directory pointing to some script inside the `build/` directory, use the following command to see some command line options of the server:
 ```
-node server.js --help
+node exe/server.js --help
 ```
 
 This should output something like:
@@ -68,29 +66,14 @@ Usage: server [options]
 A simple Iridium SBD vendor server application
 
 Options:
-  -V, --version            output the version number
-  -v, --verbose            Verbosity level
-  --mo-tcp-port <number>   MO TCP server port
-  --mo-tcp-host <string>   MO TCP server host
-  --mo-tcp-conn <number>   MO TCP maximum concurrent connections
-  --mo-tcp-queue <number>  MO TCP queue length
-  --mo-msg-dir <string>    MO message directory
-  -h, --help               display help for command
-```
-
-To execute the server using a background process manager use:
-``` bash
-npm run start
-```
-
-To stop it:
-``` bash
-npm run stop
-```
-
-Use the following command to see background processes:
-``` bash
-npx pm2 list
+  -V, --version             output the version number
+  -l, --log-level <number>  Set logging level: 1, 2, 3, 4 (default: 3)
+  --data-dir <string>       Data directory
+  --mo-tcp-port <number>    MO TCP server port
+  --mo-tcp-host <string>    MO TCP server host
+  --mo-tcp-conn <number>    MO TCP maximum concurrent connections
+  --mo-tcp-queue <number>   MO TCP queue length
+  -h, --help                display help for command
 ```
 
 Take a look to the [following URL](https://pm2.keymetrics.io/docs/usage/process-management/) in order to see more command line options of this process manager.

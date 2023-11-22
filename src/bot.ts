@@ -1,17 +1,16 @@
 import * as teleBot from "tele-bot";
-import TelegramBot from "node-telegram-bot-api"
 import * as logger from "./logger";
 import { GSS } from "isbd-emu";
 
-const log = logger.create( 'tele-bot' );
+const log = logger.create( __filename );
 
 export function botErr( err: Error ) {
-  log.error( `Bot error => ${ err.message }` );
+  log.error( `Bot failure: ${ err.message }` );
 }
 
 export function botSendMoMessage( msg: GSS.Message.MO ) {
   
-  teleBot.getOwnerChatId( ( bot, idChat ) => {
+  teleBot.getOwnerChatId().then( ([ bot, idChat ]) => {
     
     let mdMessage = '';
 
@@ -54,10 +53,10 @@ export function botSendMoMessage( msg: GSS.Message.MO ) {
       }\n`
     }
 
-    bot.sendMessage( idChat, mdMessage, { 
+    return bot.sendMessage( idChat, mdMessage, { 
       parse_mode: 'Markdown' 
-    }).catch( botErr );
+    });
 
-  })
+  }).catch( botErr );
 
 }

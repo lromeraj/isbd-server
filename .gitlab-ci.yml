@@ -5,30 +5,12 @@ variables:
 
 stages:
   - build
-  - deploy
 
-build:
+build-test-image:
   image: docker:dind
   stage: build
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE .
-    - docker push $CI_REGISTRY_IMAGE
-  only: 
-    - main
   tags:
     - docker
-
-deploy:
-  stage: deploy
-  script:
-    - cp $ENV_FILE .env && chmod 600 .env
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-    - docker compose pull
-    - docker-compose up -d
-  only:
-    - main
-  environment: 
-    name: production
-  tags:
-    - isbd-server

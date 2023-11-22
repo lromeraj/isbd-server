@@ -9,7 +9,7 @@ import { botSendMoMessage } from "../bot";
 import { SERVER_OPTIONS } from "../env";
 import { DEFAULT_MO_MSG_DIR } from "../constants";
 
-const log = logger.create( 'server/tools' );
+const log = logger.create( __filename );
 
 const _context = {
   iid: 0,
@@ -29,7 +29,7 @@ export async function checkMoMsgDir() {
       recursive: true
     }).then( () => {
       
-      log.success( `MO message dir ${
+      log.info( `MO message dir ${
         colors.yellow( moMsgDir )
       } created successfully` );
 
@@ -73,7 +73,7 @@ export async function startMoMsgDecodingTask(
     botSendMoMessage( decodedMsg );
 
     return fs.writeFile( newFilePath, buffer ).then( () => {
-      log.success( `File ${
+      log.info( `File ${
         colors.yellow( newFilePath )
       } successfully saved => ${ colors.green( newFilePath ) }` );
     }).catch( err => {

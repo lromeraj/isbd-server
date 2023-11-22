@@ -1,16 +1,12 @@
 import net from "net";
-import path from "path";
 import colors from "colors";
 import stream from "stream";
-import fs from "fs-extra";
 
 import * as logger from "../logger";
-import { SERVER_OPTIONS } from "../env";
 import { DEFAULT_MO_MSG_SIZE_LIMIT } from "../constants";
 import { getIID, startMoMsgDecodingTask } from "./tools";
-import { GSS } from "isbd-emu"
 
-const log = logger.create( 'server/handlers' );
+const log = logger.create( __filename );
 
 export function moSocketHandler(
   socket: net.Socket

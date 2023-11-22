@@ -1,24 +1,47 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import path from "path";
+
 import * as logger from "./logger";
 import * as teleBot from "tele-bot";
 
-import { SERVER_OPTIONS, checkEnv } from "./env";
-import { Option, program } from "commander";
-import { DEFAULT_MO_TCP_PORT, DEFAULT_MO_MSG_SIZE_LIMIT, DEFAULT_MO_TCP_CONN, DEFAULT_MO_MSG_DIR, DEFAULT_MO_TCP_HOST, DEFAULT_MO_TCP_QUEUE, DEFAULT_DATA_DIR } from "./constants";
-import { botErr, botSendMoMessage } from "./bot";
-import { setupMoServer } from "./server";
-import path from "path";
+import {
+	SERVER_OPTIONS
+} from "./env";
+import { InvalidArgumentError, Option, program } from "commander";
+import { 
+	DEFAULT_MO_TCP_PORT, 
+	DEFAULT_MO_TCP_CONN,
+	DEFAULT_MO_MSG_DIR, 
+	DEFAULT_MO_TCP_HOST, 
+	DEFAULT_MO_TCP_QUEUE, 
+	DEFAULT_DATA_DIR 
+} from "./constants";
 
-const log = logger.create( 'main' );
+import { botErr } from "./bot";
+import { setupMoServer } from "./server";
+
+const log = logger.create( __filename );
+const levelChoices = Object.entries( logger.levels ).map( ([k, v]) => v );
+
+export const logLevelOption = new Option(
+	'-l, --log-level <number>', 
+	`Set logging level: ${ levelChoices.join( ', ' ) }` 
+).argParser( v => {
+	const level = parseInt( v );
+	if ( !Object.entries( logger.levels ).map( ([k,v]) => v ).includes( level ) ) {
+		throw new InvalidArgumentError( `Use one of the following: ${ 
+			levelChoices.join( ', ' )
+		}` );
+	}
+	return level;
+}).default( 3 );
 
 program
   .version( '0.2.3' )
   .description( 'A simple Iridium SBD vendor server application' )
-  .option( '-v, --verbose', 'Verbosity level', 
-    (_, prev) => prev + 1, 1 )
-
+	.addOption( logLevelOption );
 
 program.addOption(
   new Option( '--data-dir <string>', 'Data directory' ) )
@@ -40,7 +63,7 @@ program.addOption(
 
 async function main() {
 
-  // TODO: automatize this
+  // TODO: improve this
   SERVER_OPTIONS.bot.secret = 
     process.env.TELE_BOT_SECRET || '';
 
@@ -65,7 +88,7 @@ async function main() {
   program.parse();
   const opts = program.opts();
 
-  logger.setLevel( opts.verbose );
+  logger.setLevel( opts.logLevel );
   
   if ( opts.dataDir ) {
     SERVER_OPTIONS.dataDir = opts.dataDir;
@@ -89,9 +112,9 @@ async function main() {
   }
 
   setupMoServer().catch( err => {
-    log.error( `Server setup failed => ${ err.message }`)
+    log.error( `Server setup failed => ${ err.message }` )
     process.exit( 1 );
-  })
+  });
 
   teleBot.setup({
     token: SERVER_OPTIONS.bot.token,
@@ -99,11 +122,17 @@ async function main() {
     storageDir: path.join( SERVER_OPTIONS.dataDir, 'tele-bot' ),
   }, botErr );
   
-  teleBot.getOwnerChatId( ( bot, idChat ) => {
-    bot.sendMessage( idChat, 'Iridium SBD server ready' )
-      .catch( botErr );
-  })
-
+  teleBot.getOwnerChatId().then( ([ bot, idChat ]) => {
+    return bot.sendMessage( idChat, 'Iridium SBD server ready' )
+  }).catch( botErr );
 }
 
 main();
+
+function gracefulShutdown() {
+	log.warn( `Signal captured, terminating ...` );
+	process.exit( 0 );
+}
+
+process.on( 'SIGINT', gracefulShutdown )
+process.on( 'SIGTERM', gracefulShutdown );

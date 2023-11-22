@@ -8,7 +8,7 @@ import { SERVER_OPTIONS } from "../env";
 import { checkMoMsgDir } from "./tools";
 import { moSocketHandler } from "./handlers";
 
-const log = logger.create( 'server' );
+const log = logger.create( __filename );
 
 const server = net.createServer();
 
@@ -35,7 +35,7 @@ export async function setupMoServer() {
       SERVER_OPTIONS.mo.tcpHost,
       SERVER_OPTIONS.mo.tcpQueue,
     ).then( () => {
-      log.success( `Server listening on [${
+      log.info( `Server listening on [${
         colors.green( SERVER_OPTIONS.mo.tcpHost )
       }]:${
         colors.yellow( SERVER_OPTIONS.mo.tcpPort+'' )

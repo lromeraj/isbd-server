@@ -1,13 +1,14 @@
 FROM node:16-slim
 
-WORKDIR /isbd-server
+WORKDIR /app
 
 COPY package*.json .
 COPY tsconfig.json .
 COPY modules/ modules/
-COPY src/ src/
-COPY scripts/ scripts/
-
 RUN npm install
 
-CMD node build/src/index.js
+COPY src/ src/
+RUN npm run build
+
+RUN rm -rf node_modules
+RUN npm install --omit=dev

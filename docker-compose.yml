@@ -1,18 +1,17 @@
-version: "3"
+version: "3.8"
 
 services:
   isbd-server:
     container_name: isbd-server
-    image: registry.glab.lromeraj.net/ucm/miot/tfm/isbd-server:latest
-    volumes: 
-      - data:/isbd-server/data
-      - .env:/isbd-server/.env
-    dns:
-      - "8.8.8.8"
-      - "8.8.4.4"
+    build:
+      context: ./
+    entrypoint: [ "node", "build/index.js" ]
+    volumes:
+      - ${DATA_DIR?}:/app/data
+      - .env:/app/.env
     ports:
-      - ${MO_TCP_PORT}:${MO_TCP_PORT}
+      - ${MO_TCP_PORT?}:${MO_TCP_PORT}
     restart: always
 
-volumes:
-  data:
+# volumes:
+#   data:

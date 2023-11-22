@@ -5,7 +5,7 @@ import * as logger from "./logger";
 import { DEFAULT_DATA_DIR, DEFAULT_MO_MSG_DIR, DEFAULT_MO_TCP_CONN, DEFAULT_MO_TCP_HOST, DEFAULT_MO_TCP_PORT, DEFAULT_MO_TCP_QUEUE } from "./constants";
 import path from "path";
 
-const log = logger.create( 'env' );
+const log = logger.create( __filename );
 
 export const DEFAULT_ENV: { 
   [key: string]: number | string 
